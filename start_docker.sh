@@ -51,4 +51,4 @@ $DOCKER_NETWORK_ARGS \
 --privileged \
 -v "$HOME/exchange:/home/user/exchange" \
 -v /var/run/docker.sock:/var/run/docker.sock \
-"$@"
+-it -v /dev/snd:/dev/snd -v $(pwd)/src:/src registry.gitlab.com/brienza1/empower_docker:latest
