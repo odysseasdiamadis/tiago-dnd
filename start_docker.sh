@@ -49,8 +49,7 @@ $DOCKER_GPU_ARGS \
 $DOCKER_SSH_AUTH_ARGS \
 $DOCKER_NETWORK_ARGS \
 --privileged \
--e PULSE_SERVER=unix:/run/user/1000/pulse/native \
--v /run/user/1000/pulse/native:/run/user/1000/pulse/native \
+-e PULSE_SERVER=127.0.0.1 \
 -e NVIDIA_VISIBLE_DEVICES=all \
 -e NVIDIA_DRIVER_CAPABILITIES=all \
 -v ~/.config/pulse/cookie:/root/.config/pulse/cookie \
@@ -58,7 +57,5 @@ $DOCKER_NETWORK_ARGS \
 -v "$HOME/exchange:/home/user/exchange" \
 -v "$PWD/dnd_session.world:/tiago_public_ws/src/pal_gazebo_worlds/worlds/dnd.world" \
 -v /var/run/docker.sock:/var/run/docker.sock \
--it \
--v /dev/snd:/dev/snd \
--v $(pwd)/src:/src \
- registry.gitlab.com/brienza1/empower_docker:latest
+-it -v /dev/snd:/dev/snd \
+-v $(pwd)/src:/src registry.gitlab.com/brienza1/empower_docker:latest
