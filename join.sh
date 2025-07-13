@@ -6,7 +6,4 @@ if [[ -z $CONT_ID ]]; then
     echo "Container not found"
 fi
 
-#docker exec -it $CONT_ID bash
-
-# start up environment with libs
-docker exec -it "$CONT_ID" bash -c "/src/install-deps.sh"
+docker exec -it $CONT_ID bash
