@@ -17,5 +17,5 @@ os.makedirs("audio_output", exist_ok=True)
 tts.save("audio_output/test_output.mp3")
 
 # Play using mpg123
-cmd = "mpg123" if not USE_PULSE else "mpg-pulse"
+cmd = "mpg123" if not USE_PULSE else "mpg123-pulse"
 os.system(f"{cmd} audio_output/test_output.mp3")
