@@ -1,0 +1,11 @@
+<package format="2">
+  <name>my_tiago_node</name>
+  <version>0.0.0</version>
+  <description>My Python node for TIAGo</description>
+  <maintainer email="you@example.com">Your Name</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+</package>

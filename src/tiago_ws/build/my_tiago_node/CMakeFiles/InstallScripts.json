@@ -1,0 +1,10 @@
+{
+	"InstallScripts" : 
+	[
+		"/src/tiago_ws/build/my_tiago_node/cmake_install.cmake",
+		"/src/tiago_ws/build/my_tiago_node/gtest/cmake_install.cmake",
+		"/src/tiago_ws/build/my_tiago_node/gtest/googlemock/cmake_install.cmake",
+		"/src/tiago_ws/build/my_tiago_node/gtest/googletest/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

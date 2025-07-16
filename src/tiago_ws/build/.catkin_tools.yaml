@@ -1,0 +1,6 @@
+devel_space: /src/tiago_ws/devel
+install: false
+install_space: /src/tiago_ws/install
+profile: default
+source_space: /src/tiago_ws/src
+workspace: /src/tiago_ws
