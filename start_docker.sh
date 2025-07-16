@@ -49,6 +49,7 @@ else
 fi
 
 xhost +
+# -u $LOCAL_USER_ID \
 
 $DOCKER_COMMAND \
 $DOCKER_USER_ARGS \
