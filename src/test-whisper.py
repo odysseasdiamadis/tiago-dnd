@@ -34,44 +34,54 @@ def test_whisper(model_name:str, audio_sample_path:str):
 
     return result["text"]
 
-def test_mic_input(audio_output_path:str):
+def test_mic_input(audio_output_path: str, device_index: int = None):
     """
     @param audio_output_path: where to save the mic input got by this func.
+    @param device_index: index of the input device (see list below)
     """
-    # Recording parameters
-    CHUNK = 1024  # Number of frames to read at a time
-    FORMAT = pyaudio.paInt16  # 16-bit integer format
-    CHANNELS = 2  # Number of audio channels (1 for mono, 2 for stereo)
-    RATE = 44100  # Sample rate (Hz)
-    RECORD_SECONDS = 5  # Duration of recording (seconds)
+    import pyaudio
+    import wave
 
-    # Create PyAudio object
+    # Recording parameters
+    CHUNK = 2048
+    FORMAT = pyaudio.paInt32  # 32-bit integer format for S32_LE
+    CHANNELS = 1              # 2 for stereo, 1 for mono
+    RATE = 48000              # 48000 Hz or lower?
+    RECORD_SECONDS = 5
+
+    # List devices if device_index is not provided
     p = pyaudio.PyAudio()
+    if device_index is None:
+        print("Available audio input devices:")
+        for i in range(p.get_device_count()):
+            info = p.get_device_info_by_index(i)
+            if info['maxInputChannels'] > 0:
+                print(f"  Index {i}: {info['name']}")
+        device_index = int(input("Enter the device index for your digital mic: "))
 
     # Open stream
     stream = p.open(format=FORMAT,
                     channels=CHANNELS,
                     rate=RATE,
                     input=True,
+                    input_device_index=device_index,
                     frames_per_buffer=CHUNK)
 
     print("Recording...")
     frames = []
 
-    # Record audio
-    for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-        data = stream.read(CHUNK)
+    for _ in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
+        data = stream.read(CHUNK, exception_on_overflow=False)      # continue recording when exceptions occur
         frames.append(data)
 
     print("Recording finished.")
 
-    # Close and terminate everything properly
     stream.stop_stream()
     stream.close()
     p.terminate()
 
     # Save as WAV file
-    os.makedirs(os.path.dirname(audio_output_path), exist_ok=True)    
+    os.makedirs(os.path.dirname(audio_output_path), exist_ok=True)
     wf = wave.open(audio_output_path, 'wb')
     wf.setnchannels(CHANNELS)
     wf.setsampwidth(p.get_sample_size(FORMAT))
@@ -81,12 +91,14 @@ def test_mic_input(audio_output_path:str):
 
     print(f"Audio saved as {audio_output_path}")
 
+
+
 if __name__ == "__main__":
 
     WHISPER_MODEL="tiny"
     AUDIO_SAMPLE="audio_output/test_mic.wav"
 
-    #test_mic_input(audio_output_path=AUDIO_SAMPLE)
+    test_mic_input(audio_output_path=AUDIO_SAMPLE)
 
     test_result = test_whisper(model_name=WHISPER_MODEL, audio_sample_path=AUDIO_SAMPLE)
 
