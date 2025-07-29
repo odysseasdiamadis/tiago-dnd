@@ -1,1 +1,0 @@
-/src/tiago_ws/devel/.private/my_tiago_node/lib/pkgconfig/my_tiago_node.pc

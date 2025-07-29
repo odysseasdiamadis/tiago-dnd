@@ -1,8 +1,0 @@
-prefix=/src/tiago_ws/devel/.private/my_tiago_node
-
-Name: my_tiago_node
-Description: Description of my_tiago_node
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

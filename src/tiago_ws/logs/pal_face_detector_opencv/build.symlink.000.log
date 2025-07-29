@@ -1,4 +1,0 @@
-Symlinking /src/tiago_ws/devel/lib/pkgconfig/pal_face_detector_opencv.pc
-Symlinking /src/tiago_ws/devel/lib/pal_face_detector_opencv/pal_face_detector_opencv
-Symlinking /src/tiago_ws/devel/share/pal_face_detector_opencv/cmake/pal_face_detector_opencvConfig.cmake
-Symlinking /src/tiago_ws/devel/share/pal_face_detector_opencv/cmake/pal_face_detector_opencvConfig-version.cmake
