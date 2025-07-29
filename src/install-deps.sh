@@ -15,3 +15,13 @@ sudo apt-get install -y libasound2-plugins
 pip install transformers gtts flask 
 pip install -U openai-whisper
 pip install pyaudio
+
+
+# pip install opencv-python tensorflow face_recognition numpy scipy
+
+
+# face detection
+pip install tensorflow==2.11.0 deepface
+pip install ultralytics opencv-python
+pip install supervision pillow
+pip install deepface
