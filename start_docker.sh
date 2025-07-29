@@ -30,6 +30,7 @@ PULSE_ARGS="-e PULSE_SERVER=unix:/run/user/$ACTUAL_UID/pulse/native \
 AUDIO_GROUP_ID=$(getent group audio | cut -d: -f3)
 
 xhost +
+# -u $LOCAL_USER_ID \
 
 $DOCKER_COMMAND \
 $DOCKER_USER_ARGS \
