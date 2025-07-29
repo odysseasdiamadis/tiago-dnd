@@ -1,0 +1,8 @@
+prefix=/src/tiago_ws/devel
+
+Name: tiago_actions
+Description: Description of tiago_actions
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
