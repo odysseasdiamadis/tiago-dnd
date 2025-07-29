@@ -26,6 +26,11 @@ Person detection
 roslaunch pal_person_detector_opencv detector.launch image:=/xtion/rgb/image_raw
 ```
 
+Face detector
+```sh
+roslaunch pal_face_detector_opencv detector.launch image:=/xtion/rgb/image_raw
+```
+
 See from tiago's eyes!
 ```sh
 rosrun rqt_image_view rqt_image_view
