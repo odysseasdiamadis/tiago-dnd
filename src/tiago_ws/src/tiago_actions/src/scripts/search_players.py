@@ -48,7 +48,7 @@ class HeadSweepImageCapture:
         traj.joint_names = ['head_1_joint', 'head_2_joint']
         point = JointTrajectoryPoint()
         point.positions = [yaw, pitch]
-        point.time_from_start = rospy.Duration(1.0)
+        point.time_from_start = rospy.Duration(0.5)
         traj.points = [point]
         self.head_pub.publish(traj)
 
@@ -116,13 +116,6 @@ class HeadSweepImageCapture:
         except rospy.ROSException as e:
             rospy.logwarn(f"Timeout waiting for image: {e}")
             return None
-    
-    def get_faces(self, image):
-        locs = face_recognition.face_locations(image, number_of_times_to_upsample=2, model='hog')
-        rospy.loginfo(f"Found {len(locs)} faces! Encoding...")
-        encs = face_recognition.face_encodings(image, known_face_locations=locs, model='large', num_jitters=2)
-        rospy.loginfo(f"Encoded {len(encs)} faces!")
-        return list(zip(locs, encs))
 
     def look_player(self, i: int):
         player = self.players[i]
@@ -133,6 +126,7 @@ class HeadSweepImageCapture:
         rospy.sleep(3)
         WIDTH = 640
         IDX = 0
+        SIMILARITY_THRESHOLD = 0.65
 
         for i, yaw in enumerate(self.yaws):
             rospy.loginfo(f"Moving head to yaw={yaw:.2f} ({i+1}/{len(self.yaws)})")
@@ -152,7 +146,7 @@ class HeadSweepImageCapture:
                         player_idx = -1
                         for idx, player in enumerate(self.players):
                             similarity = compare_embeddings(player.face, embedding2=embedding)
-                            if similarity > 0.65:
+                            if similarity > SIMILARITY_THRESHOLD:
                                 player_idx = idx
 
                         if player_idx < 0:
