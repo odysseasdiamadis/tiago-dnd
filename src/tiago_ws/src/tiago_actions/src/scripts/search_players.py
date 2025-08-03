@@ -126,7 +126,7 @@ class HeadSweepImageCapture:
         rospy.sleep(3)
         WIDTH = 640
         IDX = 0
-        SIMILARITY_THRESHOLD = 0.65
+        SIMILARITY_THRESHOLD = 0.75
 
         for i, yaw in enumerate(self.yaws):
             rospy.loginfo(f"Moving head to yaw={yaw:.2f} ({i+1}/{len(self.yaws)})")
@@ -177,7 +177,7 @@ class HeadSweepImageCapture:
 
 if __name__ == '__main__':
     try:
-        node = HeadSweepImageCapture(start=-1.0, end=1.0, steps=10)
+        node = HeadSweepImageCapture(start=-1.0, end=1.0, steps=10) # n of steps must be tuned in order to _not_ capture a face in half
         node.run()
     except rospy.ROSInterruptException:
         pass
