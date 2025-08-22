@@ -1,0 +1,25 @@
+name: tiago_env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pip
+  - pyaudio
+  - tensorflow=2.11.0
+  - numpy<2.0
+  - pip:
+      - numpy<2.0     # force pip to NOT upgrade np
+      - transformers
+      - gtts
+      - flask
+      - openai-whisper
+      - deepface
+      - ultralytics
+      - opencv-python
+      - supervision
+      - pillow
+
+
+
+# To create this env with conda:
+# conda env create -f src/tiago_env.yaml

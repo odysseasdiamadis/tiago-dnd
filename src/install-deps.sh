@@ -21,6 +21,7 @@ pip install pyaudio
 
 
 # face detection
+#pip install face-recognition
 pip install tensorflow==2.11.0 deepface
 pip install ultralytics opencv-python
 pip install supervision pillow
