@@ -2,6 +2,11 @@
 audio_output/
 src/out_folder/
 
+# config dir + exceptions
+src/config/*
+!src/config/tiago_env.yaml
+!src/config/tiago_requirements.txt
+
 # huggingface cache dir
 src/cache
 
