@@ -1,15 +1,26 @@
+import os
+
 from transformers import pipeline
 from flask import Flask, request, jsonify
 
 # Definition of models used here
 VISION_MODEL = "TODO"
-CHAT_MODEL = "sshleifer/tiny-gpt2"
+CHAT_MODEL = "microsoft/phi-2"               # just for quick testing: "sshleifer/tiny-gpt2"
 SPEECH_MODEL = "tiny"
 # TTS_MODEL = "google_tts"
+
+# General params
+CACHE_DIR = "src/cache/hugginface/"
 
 class Brain:
     def __init__(self, device=-1):
 
+        # set-up cache 
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        os.environ["HF_HOME"] = CACHE_DIR    # equivalent to: export HF_HOME="/path/to/cache/dir/"
+        os.environ["TRANSFORMERS_CACHE"] = CACHE_DIR
+        
+        # boot up server
         self.app = Flask(__name__)
         self.chat_pipeline = pipeline("text-generation", model=CHAT_MODEL, device=device)
 
@@ -26,6 +37,9 @@ class Brain:
                 response = self.chat_pipeline(prompt, max_new_tokens=150, do_sample=True, temperature=0.7)[0]['generated_text']
                 out_list.append({'id': input['id'], 'response': response})
             return jsonify(out_list)
+        
+    def init_llms():
+        pass
     
 
     def print_available_routes(self):
