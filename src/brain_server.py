@@ -1,6 +1,7 @@
 import os
 
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+from gtts import gTTS
 
 from flask import Flask, request, jsonify
 
@@ -62,8 +63,45 @@ class Brain:
                 
                 out_list.append({'id': input['id'], 'response': response})
             return jsonify(out_list)
-        
 
+
+           
+        @self.app.post("/tts")
+        def tts():
+            out_list = []
+
+            for input in request.json:
+                text = input.get('text', '')
+                language = input.get('language', 'en')  # fallback to English if not specified
+
+                if not text.strip():
+                    out_list.append({'id': input.get('id'), 'error': 'Empty text'})
+                    continue
+
+                try:
+                    # Check if PulseAudio is in use
+                    USE_PULSE = False
+                    ps = os.environ.get("PULSE_SERVER")
+                    if ps and ps.startswith("unix:"):
+                        USE_PULSE = True
+
+                    # Synthesize and save
+                    tts = gTTS(text=text, lang=language, slow=False)
+                    os.makedirs("audio_output", exist_ok=True)
+                    output_path = f"audio_output/{input.get('id', 'output')}.mp3"
+                    tts.save(output_path)
+
+                    # Play using mpg123
+                    cmd = "mpg123" if not USE_PULSE else "mpg123-pulse"
+                    os.system(f"{cmd} {output_path}")
+
+                    out_list.append({'id': input.get('id'), 'status': 'success', 'file': output_path})
+                except Exception as e:
+                    out_list.append({'id': input.get('id'), 'error': str(e)})
+
+            return jsonify(out_list)
+
+        
 
     def init_llms(self):
         # print(f"Loading model {CHAT_MODEL} into cache at {CACHE_DIR}… this may take a while if first run.")
