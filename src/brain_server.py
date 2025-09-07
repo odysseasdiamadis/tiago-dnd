@@ -1,14 +1,15 @@
 import os
 
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+import whisper
 from gtts import gTTS
 
 from flask import Flask, request, jsonify
 
 # Definition of models used here
-VISION_MODEL = "TODO"
+# VISION_MODEL = "TODO"
 CHAT_MODEL = "teknium/OpenHermes-2.5-Mistral-7B"    # just for quick testing: "sshleifer/tiny-gpt2"
-SPEECH_MODEL = "base"                               # just for quick testing: "tiny"
+SPEECH_MODEL = "large"                               # just for quick testing: "tiny"
 TTS_MODEL = "gtts"
 
 # General params
@@ -67,7 +68,7 @@ class Brain:
 
            
         @self.app.post("/tts")
-        def tts():
+        def text_to_speech():
             out_list = []
 
             for input in request.json:
@@ -101,6 +102,34 @@ class Brain:
 
             return jsonify(out_list)
 
+    
+        @self.app.route("/stt", methods=["POST"])
+        def speech_to_text():
+            # Get the audio file from the request
+            audio_file = request.files['file']
+            
+            # Read the audio bytes
+            audio_bytes = audio_file.read()
+            
+            # Save to a temporary path (whisper needs a file path)
+            temp_path = "temp_audio.wav"
+            with open(temp_path, "wb") as f:
+                f.write(audio_bytes)
+            
+            # Load and process with whisper
+            audio = whisper.load_audio(temp_path)
+            audio = whisper.pad_or_trim(audio)
+            
+            # Transcribe
+            result = self.speech_2_text_model.transcribe(audio)
+            
+            # Delete temp file
+            import os
+            os.remove(temp_path)
+            
+            return {"text": result["text"]}
+
+
         
 
     def init_llms(self):
@@ -111,7 +140,7 @@ class Brain:
             use_fast=False,          # SentencePiece-based models need slow tokenizer
             cache_dir=CACHE_DIR
         )
-        model = AutoModelForCausalLM.from_pretrained(
+        chat_model = AutoModelForCausalLM.from_pretrained(
             CHAT_MODEL,
             cache_dir=CACHE_DIR,
             torch_dtype="auto"
@@ -119,10 +148,13 @@ class Brain:
 
         self.chat_pipeline = pipeline(
             "text-generation",
-            model=model,
+            model=chat_model,
             tokenizer=self.chat_tokenizer,
             device=self.device
         )
+
+        self.speech_2_text_model = whisper.load_model(SPEECH_MODEL)  
+
 
     
 

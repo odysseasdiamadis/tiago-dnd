@@ -18,7 +18,7 @@ def download_test_audio(url: str, filename: str):
 
 def test_whisper(model_name:str, audio_sample_path:str):
     # Load the model
-    model = whisper.load_model(model_name)  # You can also try "tiny", "small", "medium", or "large"
+    model = whisper.load_model(model_name)  # You can try "tiny", "small", "medium", or "large"
 
 
     # # Download test audio
@@ -95,7 +95,7 @@ def test_mic_input(audio_output_path: str, device_index: int = None):
 
 if __name__ == "__main__":
 
-    WHISPER_MODEL="tiny"
+    WHISPER_MODEL="base"
     AUDIO_SAMPLE="audio_output/test_mic.wav"
 
     test_mic_input(audio_output_path=AUDIO_SAMPLE)
