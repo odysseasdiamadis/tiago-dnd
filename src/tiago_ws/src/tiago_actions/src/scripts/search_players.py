@@ -82,7 +82,7 @@ class HeadSweepImageCapture:
 
             # Scale and crop
             rospy.loginfo("Scaling...")
-            x1_s, y1_s, x2_s, y2_s = scale_bbox(x1, y1, x2, y2, scale_factor=0.5, image_width=image_width, image_height=image_height)
+            x1_s, y1_s, x2_s, y2_s = scale_bbox(x1, y1, x2, y2, scale_factor=1.3, image_width=image_width, image_height=image_height)
             cropped_face = image.crop((x1_s, y1_s, x2_s, y2_s))
             rospy.loginfo("Ok")
 
@@ -125,11 +125,11 @@ class HeadSweepImageCapture:
         self.move_head(self.yaws[0], self.pitch)
         rospy.sleep(3)
         WIDTH = 640
-        IDX = 0
-        SIMILARITY_THRESHOLD = 0.75
+        FINAL_PLAYER_LOOK_IDX = 0 # id of the player to look at after the detection
+        SIMILARITY_THRESHOLD = 0.85
 
         for i, yaw in enumerate(self.yaws):
-            rospy.loginfo(f"Moving head to yaw={yaw:.2f} ({i+1}/{len(self.yaws)})")
+            rospy.loginfo(f"YAW={yaw:.2f} STEP ({i+1}/{len(self.yaws)})")
             self.move_head(yaw, self.pitch)
             # rospy.sleep(0.5)  # Allow time for head to reach position
 
@@ -141,16 +141,19 @@ class HeadSweepImageCapture:
                 for bounding_box, embedding in faces:
                     print(f"LEN FACES: {len(faces)}\tBB: {bounding_box}\tEMBEDDING SHAPE: {embedding.shape}")
                     if len(self.players) == 0:
+                        rospy.loginfo(f"Goodmorning player 1!")
                         new_players.append(Player(embedding, yaw, face_position=bounding_box))
                     else:
                         player_idx = -1
+                        # Search for an existing player
                         for idx, player in enumerate(self.players):
                             similarity = compare_embeddings(player.face, embedding2=embedding)
+                            rospy.loginfo(f"SIMILARITY BETWEEN CURRENT FACE AND PLAYER {idx}: {similarity}")
                             if similarity > SIMILARITY_THRESHOLD:
                                 player_idx = idx
 
                         if player_idx < 0:
-                            rospy.loginfo("A new player! Welcome!")
+                            rospy.loginfo(f"Welcome player {len(self.players)}!")
                             new_players.append(Player(embedding, yaw=yaw, face_position=bounding_box))
                         else:
                             player = self.players[player_idx]
@@ -172,12 +175,12 @@ class HeadSweepImageCapture:
                 rospy.logwarn("No image captured at this position.")
         rospy.loginfo(f"Found a total of {len(self.players)} players")
         rospy.sleep(0.5)
-        rospy.loginfo(f"Looking at player {IDX+1}")
-        self.look_player(IDX)
+        rospy.loginfo(f"Looking at player {FINAL_PLAYER_LOOK_IDX+1}")
+        self.look_player(FINAL_PLAYER_LOOK_IDX)
 
 if __name__ == '__main__':
     try:
-        node = HeadSweepImageCapture(start=-1.0, end=1.0, steps=10) # n of steps must be tuned in order to _not_ capture a face in half
+        node = HeadSweepImageCapture(start=-1.0, end=1.0, steps=20) # n of steps must be tuned in order to _not_ capture a face in half
         node.run()
     except rospy.ROSInterruptException:
         pass

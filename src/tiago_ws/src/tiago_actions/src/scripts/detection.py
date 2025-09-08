@@ -63,7 +63,7 @@ def compare_embeddings(embedding1: np.ndarray, embedding2: np.ndarray) -> float:
     # e1 = embedding1 / np.linalg.norm(embedding1)
     # e2 = embedding2 / np.linalg.norm(embedding2)
     # return np.dot(e1, e2)
-    return cosine(embedding1, embedding2)
+    return 1-cosine(embedding1, embedding2)
 
 
 # Check if an embedding is already in the database
