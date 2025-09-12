@@ -24,6 +24,9 @@ dependencies:
       - supervision
 
 
+# add: conda tk 
+
+
 # To create this env with conda:
 # conda env create -f src/config/tiago_env.yaml
 
