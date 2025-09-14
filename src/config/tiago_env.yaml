@@ -13,6 +13,7 @@ dependencies:
   - matplotlib
   - scipy
   - pillow
+  - tk
   - pip:
       - transformers
       - sentencepiece
@@ -22,9 +23,10 @@ dependencies:
       - deepface
       - ultralytics
       - supervision
+      - pygame
 
 
-# add: conda tk 
+# TODO: add: conda tk 
 
 
 # To create this env with conda:
