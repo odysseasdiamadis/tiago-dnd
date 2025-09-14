@@ -1,9 +1,11 @@
 import os
+from io import BytesIO
 
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import whisper
 from gtts import gTTS
 
+import pygame
 from flask import Flask, request, jsonify
 
 # Definition of models used here
@@ -42,8 +44,8 @@ class Brain:
                 prompt = input['text']
                 
                 # Format prompt for OpenHermes (uses ChatML format)
-                formatted_prompt = f"<|im_start|>system\nYou are a helpful AI assistant.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
-                
+                formatted_prompt = f"{self.system_prompt_prefix}{prompt}{self.user_prompt_suffix}"
+                        
                 # Generate response
                 response = self.chat_pipeline(
                     formatted_prompt, 
@@ -54,13 +56,16 @@ class Brain:
                     eos_token_id=self.chat_tokenizer.eos_token_id
                 )[0]['generated_text']
                 
-                # Extract only the assistant's response
-                if "<|im_start|>assistant" in response:
-                    response = response.split("<|im_start|>assistant")[-1].strip()
-                    # Remove any end tokens
-                    response = response.replace("<|im_end|>", "").strip()
-                elif response.startswith(formatted_prompt):
-                    response = response[len(formatted_prompt):].strip()
+                # # Extract only the assistant's response (needed if you set return_full_text=True)
+                # if "<|im_start|>assistant" in response:
+                #     response = response.split("<|im_start|>assistant")[-1].strip()
+                #     # Remove any end tokens
+                #     response = response.replace("<|im_end|>", "").strip()
+                # elif response.startswith(formatted_prompt):
+                #     response = response[len(formatted_prompt):].strip()
+
+                # Simpler cleanup if you set return_full_text=False
+                response = response.replace("<|im_end|>", "").strip()
                 
                 out_list.append({'id': input['id'], 'response': response})
             return jsonify(out_list)
@@ -80,26 +85,26 @@ class Brain:
                     continue
 
                 try:
-                    # Check if PulseAudio is in use
-                    USE_PULSE = False
-                    ps = os.environ.get("PULSE_SERVER")
-                    if ps and ps.startswith("unix:"):
-                        USE_PULSE = True
-
-                    # Synthesize and save
+                    # Generate audio in memory
                     tts = gTTS(text=text, lang=language, slow=False)
-                    os.makedirs("audio_output", exist_ok=True)
-                    output_path = f"audio_output/{input.get('id', 'output')}.mp3"
-                    tts.save(output_path)
-
-                    # Play using mpg123
-                    cmd = "mpg123" if not USE_PULSE else "mpg123-pulse"
-                    os.system(f"{cmd} {output_path}")
-
-                    out_list.append({'id': input.get('id'), 'status': 'success', 'file': output_path})
+                    audio_buffer = BytesIO()
+                    tts.write_to_fp(audio_buffer)
+                    audio_buffer.seek(0)
+                    
+                    # Play directly from memory using pygame
+                    pygame.mixer.init()
+                    pygame.mixer.music.load(audio_buffer)
+                    pygame.mixer.music.play()
+                    
+                    # Wait for playback to finish
+                    while pygame.mixer.music.get_busy():
+                        pygame.time.wait(100)
+                        
+                    results.append({'id': item_id, 'status': 'success'})
+                    
                 except Exception as e:
-                    out_list.append({'id': input.get('id'), 'error': str(e)})
-
+                    results.append({'id': item_id, 'error': str(e)})
+        
             return jsonify(out_list)
 
     
@@ -107,6 +112,7 @@ class Brain:
         def speech_to_text():
             # Get the audio file from the request
             audio_file = request.files['file']
+            language = request.form.get('language')  # Read optional language parameter
             
             # Read the audio bytes
             audio_bytes = audio_file.read()
@@ -120,11 +126,13 @@ class Brain:
             audio = whisper.load_audio(temp_path)
             audio = whisper.pad_or_trim(audio)
             
-            # Transcribe
-            result = self.speech_2_text_model.transcribe(audio)
-            
+            # Transcribe with or without language
+            if language:
+                result = self.speech_2_text_model.transcribe(audio, language=language)
+            else:
+                result = self.speech_2_text_model.transcribe(audio)
+
             # Delete temp file
-            import os
             os.remove(temp_path)
             
             return {"text": result["text"]}
@@ -150,8 +158,15 @@ class Brain:
             "text-generation",
             model=chat_model,
             tokenizer=self.chat_tokenizer,
-            device=self.device
+            device=self.device,
+            return_full_text=False,  # Only return new tokens (major speedup)
+            clean_up_tokenization_spaces=False,  # Skip unnecessary processing
+            trust_remote_code=True
         )
+
+        # Pre-compile prompt components for faster formatting
+        self.system_prompt_prefix = "<|im_start|>system\nYou are a helpful AI assistant.<|im_end|>\n<|im_start|>user\n"
+        self.user_prompt_suffix = "<|im_end|>\n<|im_start|>assistant\n"
 
         self.speech_2_text_model = whisper.load_model(SPEECH_MODEL)  
 
