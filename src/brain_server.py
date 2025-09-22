@@ -49,7 +49,7 @@ class Brain:
                 # Generate response
                 response = self.chat_pipeline(
                     formatted_prompt, 
-                    max_new_tokens=150, 
+                    max_new_tokens=10000,    # NOTE: this defines if the answer will be truncated
                     do_sample=True, 
                     temperature=0.7,
                     pad_token_id=self.chat_tokenizer.pad_token_id,
