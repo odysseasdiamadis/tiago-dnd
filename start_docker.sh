@@ -65,7 +65,10 @@ $PULSE_ARGS \
 -v $ACTUAL_HOME/.config/pulse/cookie:/home/user/.config/pulse/cookie \
 -v /dev/snd:/dev/snd \
 -v "$ACTUAL_HOME/exchange:/home/user/exchange" \
--v "$PWD/dnd_session.world:/tiago_public_ws/src/pal_gazebo_worlds/worlds/dnd.world" \
+-v "$PWD/dnd_1players.world:/tiago_public_ws/src/pal_gazebo_worlds/worlds/dnd_1players.world" \
+-v "$PWD/dnd_2players.world:/tiago_public_ws/src/pal_gazebo_worlds/worlds/dnd_2players.world" \
+-v "$PWD/dnd_2players_error.world:/tiago_public_ws/src/pal_gazebo_worlds/worlds/dnd_2players_error.world" \
+-v "$PWD/dnd_3players.world:/tiago_public_ws/src/pal_gazebo_worlds/worlds/dnd_3players.world" \
 -v /var/run/docker.sock:/var/run/docker.sock \
 -v $(pwd)/src:/src \
 -it \
