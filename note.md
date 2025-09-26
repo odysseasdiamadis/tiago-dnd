@@ -1,3 +1,9 @@
+TODO:
+- [ ] trovare il modo di indicare un punto nello spazio (I.K. o che so io)
+- [ ] salvare su file la posizione dei giocatori
+- [ ] testare audio e microfono
+
+
 ## Conversational
 
 T: Siete in una locanda, vi incontrate per la prima volta

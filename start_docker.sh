@@ -18,7 +18,19 @@ DOCKER_COMMAND="docker run"
 DOCKER_USER_ARGS="--env LOCAL_USER_ID --env LOCAL_GROUP_ID --env LOCAL_GROUP_NAME"
 
 # Display settings
-DOCKER_GPU_ARGS="--env DISPLAY --env QT_X11_NO_MITSHM=1 --volume=/tmp/.X11-unix:/tmp/.X11-unix:rw"
+DOCKER_GPU_ARGS="--gpus all --env DISPLAY --env QT_X11_NO_MITSHM=1 --volume=/tmp/.X11-unix:/tmp/.X11-unix:rw"
+DOCKER_GPU_ARGS="--gpus all \
+                 --env DISPLAY \
+                 --env QT_X11_NO_MITSHM=1 \
+                 --env LIBGL_ALWAYS_INDIRECT=0 \
+                 --env LIBGL_ALWAYS_SOFTWARE=0 \
+                 --env MESA_GL_VERSION_OVERRIDE=3.3 \
+                 --env __GL_SYNC_TO_VBLANK=0 \
+                 --env XAUTHORITY=$ACTUAL_HOME/.Xauthority \
+                 --volume=/tmp/.X11-unix:/tmp/.X11-unix:rw \
+                 --volume=$ACTUAL_HOME/.Xauthority:/home/user/.Xauthority:rw \
+                 --device /dev/dri:/dev/dri"
+
 
 dpkg -l | grep nvidia-container-toolkit &> /dev/null
 HAS_NVIDIA_TOOLKIT=$?

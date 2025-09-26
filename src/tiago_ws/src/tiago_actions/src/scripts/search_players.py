@@ -17,170 +17,212 @@ from deepface import DeepFace
 from scipy.spatial.distance import cosine
 
 from detection import compare_embeddings, download_model, scale_bbox, detect_face
+from detection import download_model
+from player_model import Player, PlayerDatabase
+from head_controller import HeadController
+from hand_controller import HandController
+from arm_controller import ArmController
+from face_processor import FaceProcessor
 
-@dataclass
-class Player:
-    face: Any
-    yaw: float
-    face_position: tuple
-
-class HeadSweepImageCapture:
-    def __init__(self, start=-1.0, end=1.0, steps=10, pitch=0.0):
-        rospy.init_node('head_sweep_image_capture', anonymous=True)
-
-        # self.start = start
-        # self.end = end
-        self.head_pub = rospy.Publisher('/head_controller/command', JointTrajectory, queue_size=1)
-        self.bridge = CvBridge()
-        self.image_topic = '/xtion/rgb/image_color'
-        self.pitch = pitch
-
-        # Compute yaw angles
-        self.yaws = np.linspace(start, end, steps)
-        self.players = []
-        model_path: str = download_model("arnabdhar/YOLOv8-Face-Detection", "model.pt")
-
-        self.model = YOLO(model_path)
-        rospy.sleep(1.0)  # Wait for connections
-
-    def move_head(self, yaw, pitch):
-        traj = JointTrajectory()
-        traj.joint_names = ['head_1_joint', 'head_2_joint']
-        point = JointTrajectoryPoint()
-        point.positions = [yaw, pitch]
-        point.time_from_start = rospy.Duration(0.5)
-        traj.points = [point]
-        self.head_pub.publish(traj)
-
-    def extract_faces_and_embeddings(self, np_image: np.ndarray, model) -> list:
-        """
-        Detects faces and returns list of (bounding_box, embedding) pairs.
+class EnhancedPlayerSearcher:
+    """
+    Enhanced player search system that implements:
+    1. Horizontal head scanning with face centering control
+    2. Embedding computation only when faces are properly centered
+    3. JSON persistence for player database
+    4. Sequential left-to-right player discovery
+    """
+    
+    def __init__(self, scan_start: float = -1.0, scan_end: float = 1.0, 
+                 scan_step: float = 0.3, players_file: str = 'players_database.json'):
+        rospy.init_node('enhanced_player_searcher', anonymous=True)
         
-        Args:
-            np_image (np.ndarray): Input image as a NumPy array (BGR or RGB).
-            model: YOLOv8 face detection model.
-
-        Returns:
-            List of tuples: [((x1, y1, x2, y2), embedding), ...]
+        # Initialize components
+        self.head_controller = HeadController()
+        self.face_processor = FaceProcessor(
+            similarity_threshold=0.9, # threshold for cosine similarity
+            scale_factor=2,           # scale factor of the cropped face
+            border_margin=50,         # margin from the borders of the camera from which to consider faces
+        )
+        self.player_db = PlayerDatabase(players_file)
+        self.arm_controller = ArmController()
+        self.hand_controller = HandController()
+        
+        self.bbox_tolerance = 50
+        # Load existing players
+        self.players = self.player_db.load_players()
+        rospy.loginfo(f"Loaded {len(self.players)} players from database")
+        
+        # Scanning parameters
+        self.scan_start = scan_start
+        self.scan_end = scan_end
+        self.scan_step = scan_step
+        
+        # Load YOLO model
+        model_path = download_model("arnabdhar/YOLOv8-Face-Detection", "model.pt")
+        self.model = YOLO(model_path)
+        
+        rospy.loginfo("Enhanced Player Searcher initialized")
+    
+    def search_and_analyze_players(self) -> List[Player]:
         """
-        import tempfile
-        import os
-
-        # Convert np_image to PIL Image
-        image = PILImage.fromarray(np_image)
-        image_width, image_height = image.size
-
-        # Detect faces
-        rospy.loginfo("Detecting faces...")
-        detections = detect_face(model, image)
-        rospy.loginfo("ok")
-
-        faces_and_embeddings = []
-
-        for bbox in detections.xyxy:
-            x1, y1, x2, y2 = map(int, bbox)
-
-            # Scale and crop
-            rospy.loginfo("Scaling...")
-            x1_s, y1_s, x2_s, y2_s = scale_bbox(x1, y1, x2, y2, scale_factor=1.3, image_width=image_width, image_height=image_height)
-            cropped_face = image.crop((x1_s, y1_s, x2_s, y2_s))
-            rospy.loginfo("Ok")
-
-            # Save to temp file for DeepFace
-            with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
-                cropped_face.save(tmp.name)
-                tmp_path = tmp.name
-
-            try:
-                rospy.loginfo("Extracting features...")
-                embedding_data = DeepFace.represent(tmp_path, model_name="Facenet", enforce_detection=False)
-                if embedding_data:
-                    embedding = np.array(embedding_data[0]['embedding'])
-                    faces_and_embeddings.append(((x1, y1, x2, y2), embedding))
-                rospy.loginfo("Ok")
+        Main method to search for players using the enhanced algorithm.
+        Implements complete scanning logic with face detection, embedding comparison,
+        and centering of unknown players.
+        
+        Returns:
+            List of all known players (existing + newly discovered)
+        """
+        rospy.loginfo("Starting enhanced player search...")
+        
+        # Start from leftmost position
+        self.head_controller.move_head(self.scan_start, 0.0, duration=1.0)
+        rospy.sleep(1.0)
+        
+        current_yaw = self.scan_start
+        new_players_count = 0
+        
+        while current_yaw <= self.scan_end:
+            # Move to current scan position
+            self.head_controller.move_head(current_yaw, 0.0)
+            
+            # Detect faces in current view
+            image, detections = self.head_controller.detect_faces_in_current_view(self.model)
+            
+            if len(detections.xyxy) > 0:
+                rospy.loginfo(f"Found {len(detections.xyxy)} faces at yaw {current_yaw:.2f}")
                 
-            except Exception as e:
-                print(f"Error in DeepFace embedding extraction: {e}")
-            finally:
-                os.remove(tmp_path)
-
-        return faces_and_embeddings
-
-
-
-    def capture_image(self):
-        try:
-            ros_img = rospy.wait_for_message(self.image_topic, Image, timeout=3.0)
-            cv_img = self.bridge.imgmsg_to_cv2(ros_img, desired_encoding='bgr8')
-            return cv_img
-        except rospy.ROSException as e:
-            rospy.logwarn(f"Timeout waiting for image: {e}")
-            return None
-
-    def look_player(self, i: int):
-        player = self.players[i]
-        self.move_head(player.yaw, self.pitch)
-
-    def run(self):
-        self.move_head(self.yaws[0], self.pitch)
-        rospy.sleep(3)
-        WIDTH = 640
-        FINAL_PLAYER_LOOK_IDX = 0 # id of the player to look at after the detection
-        SIMILARITY_THRESHOLD = 0.85
-
-        for i, yaw in enumerate(self.yaws):
-            rospy.loginfo(f"YAW={yaw:.2f} STEP ({i+1}/{len(self.yaws)})")
-            self.move_head(yaw, self.pitch)
-            # rospy.sleep(0.5)  # Allow time for head to reach position
-
-            image = self.capture_image()
-            if image is not None:
-                # faces = self.get_faces(image=image)
-                faces = self.extract_faces_and_embeddings(image, model=self.model)
-                new_players = []
-                for bounding_box, embedding in faces:
-                    print(f"LEN FACES: {len(faces)}\tBB: {bounding_box}\tEMBEDDING SHAPE: {embedding.shape}")
-                    if len(self.players) == 0:
-                        rospy.loginfo(f"Goodmorning player 1!")
-                        new_players.append(Player(embedding, yaw, face_position=bounding_box))
+                # 1) Order detections by rightmost bounding box border (x2 coordinate)
+                face_data = []
+                for bbox in detections.xyxy:
+                    x1, y1, x2, y2 = bbox
+                    if x1 < self.bbox_tolerance or x2 > 640 - self.bbox_tolerance:
+                        continue
+                    face_data.append((x2, bbox))  # (rightmost_x, bbox)
+                
+                # Sort by rightmost x coordinate (left to right order)
+                face_data.sort(key=lambda x: x[0])
+                
+                # 2) Compute face embeddings for all detected faces
+                pil_image = PILImage.fromarray(image)
+                face_embeddings = []
+                
+                for rightmost_x, bbox in face_data:
+                    embedding = self.face_processor.extract_face_embedding(pil_image, bbox)
+                    if embedding is not None:
+                        face_embeddings.append((rightmost_x, bbox, embedding))
                     else:
-                        player_idx = -1
-                        # Search for an existing player
-                        for idx, player in enumerate(self.players):
-                            similarity = compare_embeddings(player.face, embedding2=embedding)
-                            rospy.loginfo(f"SIMILARITY BETWEEN CURRENT FACE AND PLAYER {idx}: {similarity}")
-                            if similarity > SIMILARITY_THRESHOLD:
-                                player_idx = idx
+                        rospy.logwarn(f"Failed to extract embedding for face at {bbox}")
+                
+                # 3) Compare embeddings with known players and identify unknown faces
+                unknown_faces = []
+                for rightmost_x, bbox, embedding in face_embeddings:
+                    matching_player_id = self.face_processor.find_matching_player(embedding, self.players)
+                    
+                    if matching_player_id is not None:
+                        rospy.loginfo(f"Recognized known player {matching_player_id}")
+                        self.players[matching_player_id].is_present = True
+                    else:
+                        unknown_faces.append((rightmost_x, bbox, embedding))
+                        rospy.loginfo(f"Found unknown face at bbox {bbox}")
+                
+                # 4-7) Process unknown players one by one
+                for rightmost_x, bbox, embedding in unknown_faces:
+                    rospy.loginfo(f"Processing unknown player with bbox {bbox}")
+                    
+                    # 5) Look at the unknown player by centering its bounding box
+                    target_yaw = self.head_controller.calculate_accurate_yaw_for_face(bbox, current_yaw)
+                    
+                    # Center the face using control law
+                    final_yaw, centered_bbox = self.head_controller.center_face_in_view(
+                        self.model, target_yaw, pitch=0.0
+                    )
+                    
+                    if final_yaw is None or centered_bbox is None:
+                        rospy.logwarn(f"Failed to center unknown face, skipping...")
+                        continue
+                    
+                    # 6) Save the player with the current centered yaw
+                    new_player_id = self.player_db.get_next_player_id()
+                    new_player = self.face_processor.create_new_player(
+                        embedding, final_yaw, centered_bbox, new_player_id
+                    )
+                    
+                    self.player_db.add_player(new_player)
+                    # self.players = self.player_db.load_players()
+                    new_players_count += 1
+                    
+                    rospy.loginfo(f"Hello player {new_player_id}! Nice to meet you!")
+                    print(f"\n🎲 Hello player {new_player_id}! Nice to meet you! 🎲\n")
+                    
+                    # self.arm_controller.point_at_player(new_player, arm_distance=0.8, keep_elbow_down=True)
+                    # Small delay between players
+                    # rospy.sleep(0.5)
+                
+                # 8) All faces are now known, continue scanning
+                rospy.loginfo(f"All faces at yaw {current_yaw:.2f} are now known players")
+            
+            # Move to next scan position
+            current_yaw += self.scan_step
+        
+        rospy.loginfo(f"Player search complete. Found {new_players_count} new players. "
+                     f"Total players: {len(self.players)}")
+        
+        return self.players
+    
+    def look_at_player(self, player_id: int) -> bool:
+        """Look at a specific player by their ID."""
+        player = next((p for p in self.players if p.player_id == player_id), None)
+        if player is None:
+            rospy.logwarn(f"Player {player_id} not found")
+            return False
+        
+        rospy.loginfo(f"Looking at player {player_id}")
+        self.head_controller.move_head(player.yaw, 0.0)
+        return True
+    
+    def get_player_summary(self) -> str:
+        """Get a summary of all known players."""
+        if not self.players:
+            return "No players found."
+        
+        summary = f"Found {len(self.players)} players:\n"
+        for player in sorted(self.players, key=lambda p: p.player_id):
+            summary += f"  Player {player.player_id}: yaw={player.yaw:.2f}, discovered={player.discovered_time}\n"
+        
+        return summary
+    
+    def run_search_demo(self):
+        """Run the complete player search and demonstration."""
+        rospy.loginfo("Starting player search demonstration...")
+        
+        # Search for players
+        players = self.search_and_analyze_players()
+        
+        # Print summary
+        rospy.loginfo(self.get_player_summary())
+        players_to_look = [p for p in self.players if p.is_present == True]
+        if players_to_look:
+            # Look at each player in sequence
+            # rospy.loginfo("Looking at each player...")
+            # for player in sorted(players_to_look, key=lambda p: p.player_id):
+            #     rospy.loginfo(f"Looking at player {player.player_id}")
+            #     self.look_at_player(player.player_id)
+            #     rospy.sleep(1.0)
+            
+            # Return to first player
+            player = players_to_look[0]
+            rospy.loginfo(f"It's your turn, player {player.player_id}!")
+            self.look_at_player(player.player_id)
+            self.hand_controller.point_finger()
+            self.arm_controller.point_at_player(player)
+        
+        rospy.loginfo("Player search demonstration complete!")
 
-                        if player_idx < 0:
-                            rospy.loginfo(f"Welcome player {len(self.players)}!")
-                            new_players.append(Player(embedding, yaw=yaw, face_position=bounding_box))
-                        else:
-                            player = self.players[player_idx]
-                            rospy.loginfo("We already know them")
-                            new_p = abs(bounding_box[0] - WIDTH/2)
-                            old_p = abs(player.face_position[0] - WIDTH/2)
-                            rospy.loginfo(f"new_p: {new_p}, old_p: {old_p}")
-                            
-                            if new_p < old_p:
-                                player.face = embedding
-                                player.face_position = bounding_box
-                                player.yaw = yaw
-                                rospy.loginfo("Substituting a player!")
-
-                self.players += new_players
-
-                rospy.loginfo(f"got {len(faces)} faces")
-            else:
-                rospy.logwarn("No image captured at this position.")
-        rospy.loginfo(f"Found a total of {len(self.players)} players")
-        rospy.sleep(0.5)
-        rospy.loginfo(f"Looking at player {FINAL_PLAYER_LOOK_IDX+1}")
-        self.look_player(FINAL_PLAYER_LOOK_IDX)
 
 if __name__ == '__main__':
     try:
-        node = HeadSweepImageCapture(start=-1.0, end=1.0, steps=20) # n of steps must be tuned in order to _not_ capture a face in half
+        node = EnhancedPlayerSearcher(-1.20, 1.20, 0.3)
         node.run()
     except rospy.ROSInterruptException:
         pass
