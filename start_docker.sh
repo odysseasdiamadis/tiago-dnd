@@ -11,13 +11,34 @@ ACTUAL_UID=$(id -u $ACTUAL_USER)
 export LOCAL_USER_ID=$ACTUAL_UID
 export LOCAL_GROUP_ID=$(id -g $ACTUAL_USER)
 export LOCAL_GROUP_NAME=$(id -gn $ACTUAL_USER)
+
+# Just use basic docker run
+DOCKER_COMMAND="docker run"
+
 DOCKER_USER_ARGS="--env LOCAL_USER_ID --env LOCAL_GROUP_ID --env LOCAL_GROUP_NAME"
 
 # Display settings
 DOCKER_GPU_ARGS="--env DISPLAY --env QT_X11_NO_MITSHM=1 --volume=/tmp/.X11-unix:/tmp/.X11-unix:rw"
 
-# Just use basic docker run
-DOCKER_COMMAND="docker run"
+dpkg -l | grep nvidia-container-toolkit &> /dev/null
+HAS_NVIDIA_TOOLKIT=$?
+which nvidia-docker > /dev/null
+HAS_NVIDIA_DOCKER=$?
+if [ $HAS_NVIDIA_TOOLKIT -eq 0 ]; then
+  docker_version=`docker version --format '{{.Client.Version}}' | cut -d. -f1`
+  if [ $docker_version -ge 19 ]; then
+	  DOCKER_COMMAND="docker run --gpus all"
+  else
+	  DOCKER_COMMAND="docker run --runtime=nvidia"
+  fi
+elif [ $HAS_NVIDIA_DOCKER -eq 0 ]; then
+  DOCKER_COMMAND="nvidia-docker run"
+else
+  echo "Running without nvidia-docker, if you have an NVidia card you may need it"\
+  "to have GPU acceleration"
+  DOCKER_COMMAND="docker run"
+fi
+
 
 # Network
 DOCKER_NETWORK_ARGS="--net host"
@@ -39,6 +60,8 @@ $DOCKER_NETWORK_ARGS \
 --group-add $AUDIO_GROUP_ID \
 --privileged \
 $PULSE_ARGS \
+-e NVIDIA_VISIBLE_DEVICES=all \
+-e NVIDIA_DRIVER_CAPABILITIES=all \
 -v $ACTUAL_HOME/.config/pulse/cookie:/home/user/.config/pulse/cookie \
 -v /dev/snd:/dev/snd \
 -v "$ACTUAL_HOME/exchange:/home/user/exchange" \
