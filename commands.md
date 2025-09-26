@@ -15,14 +15,20 @@ rosrun rqt_image_view rqt_image_view
 ```
 
 Lancia la scena "ricerca giocatori"
+(per avviarla con ros bisogna aver fatto il source sopra)
 ```sh
 rosrun tiago_actions search_players
+```
+
+```sh
+python3 src/tiago_ws/src/tiago_actions/src/scripts/search_players.py
 ```
 
 Gazebo (cambia l'ultimo parametro seguendo i nomi dei file .world nella root del progetto per cambiare mondo)
 ```sh
 roslaunch tiago_gazebo tiago_gazebo.launch public_sim:=true end_effector:=pal-hey5 world:=dnd_3players
 ```
+
 
 Compile Catkin
 ```sh
