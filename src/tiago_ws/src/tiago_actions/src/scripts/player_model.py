@@ -8,7 +8,6 @@ import numpy as np
 
 @dataclass
 class Player:
-    """Represents a detected player with face embedding and position information."""
     face_embedding: List[float]
     yaw: float
     face_position: tuple
@@ -22,7 +21,6 @@ class Player:
             self.discovered_time = datetime.now().isoformat()
     
     def to_dict(self) -> Dict:
-        """Convert player to dictionary for JSON serialization."""
         return {
             'face_embedding': self.face_embedding if isinstance(self.face_embedding, list) else self.face_embedding.tolist(),
             'yaw': float(self.yaw),
@@ -33,7 +31,6 @@ class Player:
     
     @classmethod
     def from_dict(cls, data: Dict) -> 'Player':
-        """Create player from dictionary."""
         p = cls(
             face_embedding=data['face_embedding'],
             yaw=data['yaw'], 
@@ -46,11 +43,9 @@ class Player:
         return p
     
     def get_face_center_x(self) -> float:
-        """Get the x-coordinate of face center."""
         return (self.face_position[0] + self.face_position[2]) / 2
     
     def get_face_embedding_array(self) -> np.ndarray:
-        """Get face embedding as numpy array."""
         return np.array(self.face_embedding)
 
 
@@ -62,7 +57,6 @@ class PlayerDatabase:
         self.players = []
     
     def load_players(self) -> List[Player]:
-        """Load players from JSON file."""
         try:
             with open(self.database_file, 'r') as f:
                 data = json.load(f)
@@ -74,7 +68,6 @@ class PlayerDatabase:
             return self.players
     
     def save_players(self, players: List[Player]) -> None:
-        """Save players to JSON file."""
         data = {
             'players': [player.to_dict() for player in players],
             'last_updated': datetime.now().isoformat(),
@@ -84,12 +77,10 @@ class PlayerDatabase:
             json.dump(data, f, indent=2)
     
     def add_player(self, player: Player) -> None:
-        """Add a new player to the database."""
         self.players.append(player)
         # self.save_players(self.players)
     
     def update_player(self, player_id: int, updated_player: Player) -> bool:
-        """Update an existing player in the database."""
         for i, player in enumerate(self.players):
             if player.player_id == player_id:
                 self.players[i] = updated_player
@@ -98,7 +89,6 @@ class PlayerDatabase:
         return False
     
     def get_next_player_id(self) -> int:
-        """Get the next available player ID."""
         if not self.players:
             return 0
         return max(player.player_id for player in self.players) + 1

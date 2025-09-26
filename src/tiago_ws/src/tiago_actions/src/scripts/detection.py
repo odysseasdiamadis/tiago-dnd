@@ -8,18 +8,15 @@ from deepface import DeepFace
 from scipy.spatial.distance import cosine
 
 
-# Download the model from HuggingFace hub
 def download_model(repo_id: str, filename: str) -> str:
     return hf_hub_download(repo_id=repo_id, filename=filename)
 
 
-# Detect faces in the image using YOLO
 def detect_face(model, image: Image) -> Detections:
     output = model(image)
     return Detections.from_ultralytics(output[0])
 
 
-# Scale bounding box
 def scale_bbox(x1: float, y1: float, x2: float, y2: float, scale_factor: float, image_width: int, image_height: int) -> tuple:
     dx = (x2 - x1) * scale_factor
     dy = (y2 - y1) * scale_factor
@@ -32,7 +29,6 @@ def scale_bbox(x1: float, y1: float, x2: float, y2: float, scale_factor: float, 
     return x1_scaled, y1_scaled, x2_scaled, y2_scaled
 
 
-# Process the detection (crop the face using the bounding box)
 def process_detection(detection, image: Image, scale_factor: float = 0.5) -> Image:
     bbox = detection  
     x1, y1, x2, y2 = bbox
@@ -41,14 +37,11 @@ def process_detection(detection, image: Image, scale_factor: float = 0.5) -> Ima
     x1_scaled, y1_scaled, x2_scaled, y2_scaled = scale_bbox(x1, y1, x2, y2, scale_factor, image.width, image.height)
     return image.crop((x1_scaled, y1_scaled, x2_scaled, y2_scaled))
 
-
-# Save the cropped face image
 def dump_image(cropped_face: Image, output_path: str) -> None:
     cropped_face.save(output_path)
     print(f"Image saved at {output_path}")
 
 
-# Generate a face embedding using DeepFace
 def get_face_embedding(image: Image) -> np.ndarray:
     temp_filename = "temp_face.jpg"
     image.save(temp_filename)
@@ -57,16 +50,10 @@ def get_face_embedding(image: Image) -> np.ndarray:
     return np.array(embedding[0]['embedding'])
 
 
-# Compare two embeddings using cosine similarity
 def compare_embeddings(embedding1: np.ndarray, embedding2: np.ndarray) -> float:
-    # print("Comparing embeddings")
-    # e1 = embedding1 / np.linalg.norm(embedding1)
-    # e2 = embedding2 / np.linalg.norm(embedding2)
-    # return np.dot(e1, e2)
     return 1-cosine(embedding1, embedding2)
 
 
-# Check if an embedding is already in the database
 def is_face_known(new_embedding: np.ndarray, database: list, threshold: float = 0.7) -> bool:
     for known_embedding in database:
         similarity = compare_embeddings(new_embedding, known_embedding)
@@ -75,7 +62,6 @@ def is_face_known(new_embedding: np.ndarray, database: list, threshold: float = 
     return False
 
 
-# Process a single image, detect faces and save cropped faces with embeddings
 def process_image(image_path: str, model, output_folder: str, database: list) -> None:
     image = Image.open(image_path)
     base_filename = os.path.splitext(os.path.basename(image_path))[0]  
@@ -111,7 +97,6 @@ def process_image(image_path: str, model, output_folder: str, database: list) ->
                 print(f"Similarity between face {i+1} and face {j+1}: {similarity:.4f}")
 
 
-# Process all images in the input folder
 def process_all_images(input_folder: str, output_folder: str, model, database: list) -> None:
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
@@ -123,7 +108,6 @@ def process_all_images(input_folder: str, output_folder: str, model, database: l
             process_image(image_path, model, output_folder, database)
 
 
-# Main function
 def main():
     input_folder = "src/img_input_example"
     output_folder = "src/out_folder"
@@ -131,7 +115,6 @@ def main():
 
     model = YOLO(model_path)
 
-    # Initialize an empty database for face embeddings
     face_database = []
 
     process_all_images(input_folder, output_folder, model, face_database)

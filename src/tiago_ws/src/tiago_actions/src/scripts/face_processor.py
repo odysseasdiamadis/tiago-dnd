@@ -8,29 +8,31 @@ from typing import Optional, Tuple, List
 from PIL import Image as PILImage
 from deepface import DeepFace
 
-from detection import scale_bbox, compare_embeddings
 from player_model import Player
+
+def scale_bbox(x1: float, y1: float, x2: float, y2: float, scale_factor: float, image_width: int, image_height: int) -> tuple:
+    dx = (x2 - x1) * scale_factor
+    dy = (y2 - y1) * scale_factor
+
+    x1_scaled = max(x1 - dx, 0)
+    y1_scaled = max(y1 - dy, 0)
+    x2_scaled = min(x2 + dx, image_width)
+    y2_scaled = min(y2 + dy, image_height)
+
+    return x1_scaled, y1_scaled, x2_scaled, y2_scaled
+
+
+def compare_embeddings(embedding1: np.ndarray, embedding2: np.ndarray) -> float:
+    return 1-cosine(embedding1, embedding2)
 
 
 class FaceProcessor:
-    """Handles face embedding extraction and player recognition."""
-    
     def __init__(self, similarity_threshold: float = 0.85, border_margin: int = 50, scale_factor: float = 1):
         self.similarity_threshold = similarity_threshold
         self.border_margin = 50  # pixels to avoid faces on image borders
         self.scale_factor = scale_factor
     
     def extract_face_embedding(self, image: PILImage.Image, bbox: Tuple[float, float, float, float]) -> Optional[np.ndarray]:
-        """
-        Extract face embedding from a detected face in the image.
-        
-        Args:
-            image: PIL Image containing the face
-            bbox: Bounding box coordinates (x1, y1, x2, y2)
-            
-        Returns:
-            Face embedding as numpy array, or None if extraction failed
-        """
         x1, y1, x2, y2 = map(int, bbox)
         image_width, image_height = image.size
         
@@ -40,14 +42,12 @@ class FaceProcessor:
             rospy.loginfo(f"Skipping face on border: bbox=({x1}, {y1}, {x2}, {y2})")
             return None
         
-        # Scale and crop face
         try:
             rospy.loginfo("Scaling and cropping face...")
             x1_s, y1_s, x2_s, y2_s = scale_bbox(x1, y1, x2, y2, scale_factor=self.scale_factor, 
                                                  image_width=image_width, image_height=image_height)
             cropped_face = image.crop((x1_s, y1_s, x2_s, y2_s))
             
-            # Save to temporary file for DeepFace
             with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
                 cropped_face.save(tmp.name)
                 tmp_path = tmp.name
@@ -74,16 +74,6 @@ class FaceProcessor:
             return None
     
     def find_matching_player(self, face_embedding: np.ndarray, known_players: List[Player]) -> Optional[int]:
-        """
-        Find if the face embedding matches any known player.
-        
-        Args:
-            face_embedding: Face embedding to match
-            known_players: List of known players
-            
-        Returns:
-            Player ID if match found, None otherwise
-        """
         for player in known_players:
             player_embedding = np.array(player.face_embedding)
             similarity = compare_embeddings(player_embedding, face_embedding)
@@ -95,19 +85,7 @@ class FaceProcessor:
         
         return None
     
-    def should_update_player_position(self, new_bbox: Tuple[float, float, float, float], 
-                                     current_player: Player, image_width: int) -> bool:
-        """
-        Determine if the new face position is better centered than the current one.
-        
-        Args:
-            new_bbox: New face bounding box
-            current_player: Current player data
-            image_width: Image width in pixels
-            
-        Returns:
-            True if new position is better (more centered)
-        """
+    def should_update_player_position(self, new_bbox: Tuple[float, float, float, float], current_player: Player, image_width: int) -> bool:
         # Calculate how far each face center is from image center
         new_center_x = (new_bbox[0] + new_bbox[2]) / 2
         new_distance_from_center = abs(new_center_x - image_width / 2)
@@ -117,9 +95,7 @@ class FaceProcessor:
         
         return new_distance_from_center < old_distance_from_center
     
-    def create_new_player(self, face_embedding: np.ndarray, yaw: float, 
-                         bbox: Tuple[float, float, float, float], player_id: int) -> Player:
-        """Create a new Player object from detection data."""
+    def create_new_player(self, face_embedding: np.ndarray, yaw: float, bbox: Tuple[float, float, float, float], player_id: int) -> Player:
         return Player(
             face_embedding=face_embedding.tolist(),
             yaw=yaw,
