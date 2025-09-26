@@ -3,26 +3,25 @@ Source env vars
 # One script to source them all
 source /src/tiago_ws/source.bash
 ```
-
 Or
-
 ```sh
 source /tiago_public_ws/devel/setup.bash
 source /src/tiago_ws/devel/setup.bash
 ```
 
-Source venv environment after it is created
+Guarda dalla telecamera di tiago
 ```sh
-# note: should launch the ./install-deps.sh first
-source /src/tiago_ws/source.bash
+rosrun rqt_image_view rqt_image_view
 ```
 
-
+Lancia la scena "ricerca giocatori"
+```sh
+rosrun tiago_actions search_players
 ```
 
-Launch gazebo
+Gazebo (cambia l'ultimo parametro seguendo i nomi dei file .world nella root del progetto per cambiare mondo)
 ```sh
-roslaunch tiago_gazebo tiago_gazebo.launch public_sim:=true end_effector:=pal-hey5 world:=dnd
+roslaunch tiago_gazebo tiago_gazebo.launch public_sim:=true end_effector:=pal-hey5 world:=dnd_3players
 ```
 
 Compile Catkin
@@ -30,30 +29,12 @@ Compile Catkin
 catkin build --cmake-args -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 ```
 
-Person detection
-```sh
-roslaunch pal_person_detector_opencv detector.launch image:=/xtion/rgb/image_raw
-```
-
-Face detector
-```sh
-roslaunch pal_face_detector_opencv detector.launch image:=/xtion/rgb/image_raw
-```
-
-See from tiago's eyes!
-```sh
-rosrun rqt_image_view rqt_image_view
-```
-
 Control tiago with arrow keys
 ```sh
 rosrun key_teleop key_teleop.py
 ```
 
-```sh
-rosrun tiago_actions
-```
-
+Non mi ricordo, roba inutile
 ```sh
 rostopic pub /arm_controller/command trajectory_msgs/JointTrajectory "
   joint_names: ['arm_1_joint', 'arm_2_joint', 'arm_3_joint', 'arm_4_joint', 'arm_5_joint', 'arm_6_joint', 'arm_7_joint']
