@@ -7,23 +7,8 @@ import os
 from typing import Optional, Tuple, List
 from PIL import Image as PILImage
 from deepface import DeepFace
-
+from detection import compare_embeddings, scale_bbox
 from player_model import Player
-
-def scale_bbox(x1: float, y1: float, x2: float, y2: float, scale_factor: float, image_width: int, image_height: int) -> tuple:
-    dx = (x2 - x1) * scale_factor
-    dy = (y2 - y1) * scale_factor
-
-    x1_scaled = max(x1 - dx, 0)
-    y1_scaled = max(y1 - dy, 0)
-    x2_scaled = min(x2 + dx, image_width)
-    y2_scaled = min(y2 + dy, image_height)
-
-    return x1_scaled, y1_scaled, x2_scaled, y2_scaled
-
-
-def compare_embeddings(embedding1: np.ndarray, embedding2: np.ndarray) -> float:
-    return 1-cosine(embedding1, embedding2)
 
 
 class FaceProcessor:

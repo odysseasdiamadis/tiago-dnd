@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from dataclasses import dataclass
-from typing import Any, Union
+from typing import Any, Union, List
 import rospy
 import numpy as np
 from sensor_msgs.msg import Image
@@ -10,7 +10,6 @@ from cv_bridge import CvBridge
 import cv2
 from huggingface_hub import hf_hub_download
 from ultralytics import YOLO
-from supervision import Detections
 from PIL import Image as PILImage
 import numpy as np
 from deepface import DeepFace
@@ -223,6 +222,6 @@ class EnhancedPlayerSearcher:
 if __name__ == '__main__':
     try:
         node = EnhancedPlayerSearcher(-1.20, 1.20, 0.3)
-        node.run()
+        node.run_search_demo()
     except rospy.ROSInterruptException:
         pass
