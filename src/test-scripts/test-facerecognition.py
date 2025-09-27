@@ -50,7 +50,7 @@ def dump_image(cropped_face: Image, output_path: str) -> None:
 
 # Generate a face embedding using DeepFace
 def get_face_embedding(image: Image) -> np.ndarray:
-    temp_filename = "temp_face.jpg"
+    temp_filename = "src/test-scripts/temp/temp_face.jpg"
     image.save(temp_filename)
     embedding = DeepFace.represent(temp_filename, model_name="Facenet", enforce_detection=False)
     os.remove(temp_filename)
@@ -122,8 +122,8 @@ def process_all_images(input_folder: str, output_folder: str, model, database: l
 
 # Main function
 def main():
-    input_folder = "src/img_input_example"
-    output_folder = "src/out_folder"
+    input_folder = "src/test-scripts/img_input_example"
+    output_folder = "src/test-scripts/out_folder"
     model_path = download_model("arnabdhar/YOLOv8-Face-Detection", "model.pt")
 
     model = YOLO(model_path)
