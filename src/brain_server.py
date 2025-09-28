@@ -1,6 +1,8 @@
 import os
 from io import BytesIO
+import yaml
 
+import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import whisper
 from gtts import gTTS
@@ -8,22 +10,24 @@ from gtts import gTTS
 import pygame
 from flask import Flask, request, jsonify
 
-# Definition of models used here
-# VISION_MODEL = "TODO"
-CHAT_MODEL = "teknium/OpenHermes-2.5-Mistral-7B"    # just for quick testing: "sshleifer/tiny-gpt2"
-SPEECH_MODEL = "large"                               # just for quick testing: "tiny"
-TTS_MODEL = "gtts"
 
-# General params
-CACHE_DIR = "src/cache/hugginface/"
+# file with all setting of the server and interaction modes
+CONFIG_YAML = "src/config/brain_server.yaml"
+
 
 class Brain:
-    def __init__(self, device=-1):
+    def __init__(self, config_yaml_file:str, device=-1):
+        assert os.path.isfile(config_yaml_file), f"WARNING: tiago_server.yaml file not found, refer to src/config/brain_server.example.yaml to create one."
+        
+        # load config file
+        with open(config_yaml_file, 'r') as f:
+            self.config = yaml.safe_load(f)
+
 
         # set-up cache 
-        os.makedirs(CACHE_DIR, exist_ok=True)
-        os.environ["HF_HOME"] = CACHE_DIR    # equivalent to: export HF_HOME="/path/to/cache/dir/"
-        os.environ["TRANSFORMERS_CACHE"] = CACHE_DIR
+        os.makedirs(self.config["CACHE_DIR"], exist_ok=True)
+        os.environ["HF_HOME"] = self.config["CACHE_DIR"]    # equivalent to: export HF_HOME="/path/to/cache/dir/"
+        os.environ["TRANSFORMERS_CACHE"] = self.config["CACHE_DIR"]
 
         # set up models
         self.device = device
@@ -144,13 +148,13 @@ class Brain:
         # print(f"Loading model {CHAT_MODEL} into cache at {CACHE_DIR}… this may take a while if first run.")
 
         self.chat_tokenizer = AutoTokenizer.from_pretrained(
-            CHAT_MODEL,
+            self.config["CHAT_MODEL"],
             use_fast=False,          # SentencePiece-based models need slow tokenizer
-            cache_dir=CACHE_DIR
+            cache_dir=self.config["CACHE_DIR"]
         )
         chat_model = AutoModelForCausalLM.from_pretrained(
-            CHAT_MODEL,
-            cache_dir=CACHE_DIR,
+            self.config["CHAT_MODEL"],
+            cache_dir=self.config["CACHE_DIR"],
             torch_dtype="auto"
         )
 
@@ -168,7 +172,7 @@ class Brain:
         self.system_prompt_prefix = "<|im_start|>system\nYou are a helpful AI assistant.<|im_end|>\n<|im_start|>user\n"
         self.user_prompt_suffix = "<|im_end|>\n<|im_start|>assistant\n"
 
-        self.speech_2_text_model = whisper.load_model(SPEECH_MODEL)  
+        self.speech_2_text_model = whisper.load_model(self.config["SPEECH_MODEL"])  
 
 
     
@@ -187,6 +191,18 @@ class Brain:
 
 
 if __name__ == "__main__":
-    brain_server = Brain()   
+    brain_server = Brain(
+        config_yaml_file=CONFIG_YAML,
+        device=0 if torch.cuda.is_available() else -1       # select first gpu available or cpu if gpu is not available
+    )   
     brain_server.print_available_routes() 
     brain_server.app.run(host="0.0.0.0", port=5001)
+
+    # NOTE: On the same pc you run this script, you can grep the current ip on which this service will be exposed:
+    #        ifconfig | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}'
+    #       This returns the ip that you will also see when starting the brain server and you can add the port.
+    #       To reach the service from other pcs connected to the same network, you also need to enable the requests through the firewall.
+    #       On windows, run:
+    #       New-NetFirewallRule -DisplayName "Brain Server" -Direction Inbound -Protocol TCP -LocalPort 5001 -Action Allow
+    #       On linux, run:
+            # TODO

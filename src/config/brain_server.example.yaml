@@ -1,5 +1,5 @@
 # Connection params:
-SERVER_URL: "http://localhost:5001"                    # IP of the computer on which the server will be hosted on. If on the same net, it should be something like 192.168.X.X.
+SERVER_URL: "http://localhost"                    # IP of the computer on which the server will be hosted on. If on the same net, it should be something like 192.168.X.X.
 SERVER_PORT: 5001                                      # Port to open on the above specified computer
 
 # Models used here

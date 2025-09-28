@@ -1,34 +1,46 @@
 from typing import Optional
 import requests
+import yaml
 import pyaudio
 import wave
 import io
 
-# TODO: read from yaml file
-BRAIN_SERVER_URL = "http://localhost:5001"
+# file with all setting of the server and interaction modes
+CONFIG_YAML = "src/config/brain_server.yaml"
 
-def ask_llm(text:str):
-    url = f"{BRAIN_SERVER_URL}/chat"
+
+def retrieve_url_from_yaml(yaml_file_path:str):
+    # load config file
+    with open(yaml_file_path, 'r') as f:
+        config = yaml.safe_load(f)
+
+    return f"""{config["SERVER_URL"]}:{config["SERVER_PORT"]}"""
+
+
+def ask_llm(server_url:str, text:str):
+    chat_url = f"{server_url}/chat"
 
     data = [
         {"id": 1, "text": text},
     ]
 
-    response = requests.post(url, json=data)
+    response = requests.post(chat_url, json=data)
 
-    return response .json()[0]["response"]
+    return response.json()[0]["response"]
 
 
-def say(text: str, language: str = "en"):
-    url =  f"{BRAIN_SERVER_URL}/tts"
+def say(server_url:str, text: str, language: str = "en"):
+    tts_url =  f"{server_url}/tts"
     
     data = [
         {"id": 1, "text": text, "language": language},
     ]
 
-    response = requests.post(url, json=data)
+    response = requests.post(tts_url, json=data)
     result = response.json()[0]
 
+    # TODO: check audio saving in file, is it necessary?
+    # TODO: does the SERVER play audio OR does this function do? This can cause problems if the server is hosted on another pc!!
     if "status" in result and result["status"] == "success":
         print(f"[TTS] Audio saved to: {result['file']}")
     else:
@@ -119,26 +131,28 @@ def hear(duration:int = 5, device_index: Optional[int] = None):
     return wav_buffer.read()
 
 
-def transcribe(audio_data, language=None):
+def transcribe(server_url:str, audio_data, language=None):
     # Send directly to the STT endpoint
-    url = f"{BRAIN_SERVER_URL}/stt"
+    stt_url = f"{server_url}/stt"
     files = {"file": ("audio.wav", audio_data, "audio/wav")}
     data = {"language": language} if language else {}
 
-    response = requests.post(url, files=files, data=data)
+    response = requests.post(stt_url, files=files, data=data)
     return response.json()["text"]
 
 
 if __name__ == "__main__":
 # TEST THE FUNCTIONS:
+    # get base urk of brain server
+    server_url = retrieve_url_from_yaml(CONFIG_YAML)
     # Record audio:
     audio_data = hear(duration=5, device_index=None)
     print(f"[DEBUG] Input audio size: {len(audio_data)} bytes")
     # transcribe audio:
-    transcription = transcribe(audio_data, language="it")
+    transcription = transcribe(server_url, audio_data, language="it")
     print("[DEBUG] Transcription:", transcription)
     # Ask (transcribed) question to llm:
-    answer = ask_llm(transcription)
+    answer = ask_llm(server_url, transcription)
     # Say aloud the answer:
-    say(text=answer, language="it")
+    say(server_url, text=answer, language="it")
 
