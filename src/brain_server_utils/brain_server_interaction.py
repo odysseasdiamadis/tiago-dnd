@@ -49,14 +49,14 @@ class BrainInteractor:
         ]
 
         response = requests.post(tts_url, json=data)
-        result = response.json()[0]
+        # result = response.json()[0]
 
-        # TODO: check audio saving in file, is it necessary?
-        # TODO: does the SERVER play audio OR does this function do? This can cause problems if the server is hosted on another pc!!
-        if "status" in result and result["status"] == "success":
-            print(f"[TTS] Audio saved to: {result['file']}")
-        else:
-            print(f"[TTS] Error: {result.get('error', 'Unknown error')}")
+        # # TODO: check audio saving in file, is it necessary?
+        # # TODO: does the SERVER play audio OR does this function do? This can cause problems if the server is hosted on another pc!!
+        # if "status" in result and result["status"] == "success":
+        #     print(f"[TTS] Audio saved to: {result['file']}")
+        # else:
+        #     print(f"[TTS] Error: {result.get('error', 'Unknown error')}")
 
 
     def find_mic_index(self, p:pyaudio.PyAudio, auto_select:bool=False) -> int:
