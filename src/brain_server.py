@@ -123,11 +123,14 @@ class Brain:
                     # Wait for playback to finish
                     while pygame.mixer.music.get_busy():
                         pygame.time.wait(100)
-                        
-                    results.append({'id': item_id, 'status': 'success'})
+
+                    # TODO: pass as audio stream instead of saying fromn server  
+                    # TODO: check if this is correct AND if needed (result.XX is not initialized)
+                    # results.append({'id': item_id, 'status': 'success'})
                     
                 except Exception as e:
-                    results.append({'id': item_id, 'error': str(e)})
+                    pass    # TODO: manage
+                    #results.append({'id': item_id, 'error': str(e)})
         
             return jsonify(out_list)
 
@@ -192,8 +195,9 @@ class Brain:
         # self.system_prompt_prefix = "<|im_start|>system\nYou are a helpful AI assistant.<|im_end|>\n<|im_start|>user\n"
         # self.user_prompt_suffix = "<|im_end|>\n<|im_start|>assistant\n"
 
-        # Load GPT-2 via our class abstraction
-        self.chat_model = GPT2(self.config)
+        # TODO: change model based on selection
+        # Load GPT-2 via class abstraction
+        self.chat_model = Qwen3(self.config)
 
         self.speech_2_text_model = whisper.load_model(self.config["SPEECH_MODEL"])  
 

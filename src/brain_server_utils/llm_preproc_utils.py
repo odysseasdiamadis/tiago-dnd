@@ -20,7 +20,7 @@ class LLM(ABC):
         if torch.cuda.is_available():
             return torch.cuda.current_device()
         elif torch.backends.mps.is_available():
-            return "mps"
+            return "mps"    # technically, used for mac gpu but here only for completion
         return "cpu"
     
     @abstractmethod
@@ -87,4 +87,77 @@ class GPT2(LLM):
         if prompt in generated:
             generated = generated[len(prompt):].strip()
         
+        return generated
+    
+
+
+
+class Qwen3(LLM):
+    """Qwen3-4B-Instruct-2507 model implementation"""
+
+    def __init__(self, config):
+        super().__init__(config)
+        self.model_name = "Qwen/Qwen3-4B-Instruct-2507"  # Adjust based on actual model availability
+
+
+    def init_function(self):
+        """Initialize Qwen3 model"""
+        print(f"Loading {self.model_name}...")
+
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            self.model_name,
+            trust_remote_code=True,
+            cache_dir=self.config.get("CACHE_DIR")
+        )
+
+        self.model = AutoModelForCausalLM.from_pretrained(
+            self.model_name,
+            torch_dtype="auto",
+            trust_remote_code=True,
+             #device_map="auto",  # Optional: offloads to available devices
+            cache_dir=self.config.get("CACHE_DIR")
+        )
+
+        self.pipeline = pipeline(
+            "text-generation",
+            model=self.model,
+            tokenizer=self.tokenizer,
+            device=self.device,
+            return_full_text=False  # Let us handle formatting output
+        )
+
+        print(f"{self.model_name} loaded!")
+
+    def chat(self, prompt):
+        """Generate a response using tokenizer's chat_template"""
+
+        # Single-round message history
+        messages = [
+            {"role": "user", "content": prompt}
+        ]
+
+        try:
+            formatted_prompt = self.tokenizer.apply_chat_template(
+                messages,
+                tokenize=False,
+                add_generation_prompt=True
+            )
+        except Exception as e:
+            raise RuntimeError(f"Failed to apply chat template: {e}")
+
+        generation_params = {
+            "max_new_tokens": 512,
+            "temperature": 0.7,
+            "top_p": 0.9,
+            "do_sample": True,
+            "eos_token_id": self.tokenizer.eos_token_id
+        }
+
+        response = self.pipeline(formatted_prompt, **generation_params)
+        generated = response[0]["generated_text"]
+
+        # Strip input prompt from generated text if it exists
+        if formatted_prompt in generated:
+            generated = generated[len(formatted_prompt):].strip()
+
         return generated

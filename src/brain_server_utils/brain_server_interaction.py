@@ -59,7 +59,7 @@ class BrainInteractor:
             print(f"[TTS] Error: {result.get('error', 'Unknown error')}")
 
 
-    def find_mic_index(p:pyaudio.PyAudio, auto_select:bool=False) -> int:
+    def find_mic_index(self, p:pyaudio.PyAudio, auto_select:bool=False) -> int:
         """Tries to automatically find the correct microphone index for the device. 
         Useful in the docker or even if you are not sure.
         @param auto_select: if True, does not ask user to select mic and automatically selects the first non zero one.
@@ -83,7 +83,7 @@ class BrainInteractor:
 
 
 
-    def hear(duration:int = 5, device_index: Optional[int] = None):
+    def hear(self, duration:int = 5, device_index: Optional[int] = None):
         """Record audio and return it as bytes in WAV format"""
         
         # Recording parameters
@@ -98,7 +98,7 @@ class BrainInteractor:
 
         # select mic device if it was not provided
         if device_index == None:
-            device_index = find_mic_index(p, auto_select=True)
+            device_index = self.find_mic_index(p, auto_select=True)
 
         # set param
         device_info = p.get_device_info_by_index(device_index)
@@ -167,6 +167,7 @@ if __name__ == "__main__":
     print("[DEBUG] Transcription:", transcription)
     # Ask (transcribed) question to llm:
     answer = interactor.ask_llm(transcription)
+    print("[DEBUG] LLM answer:", answer)
     # Say aloud the answer:
     interactor.say(text=answer, language="it")
 
