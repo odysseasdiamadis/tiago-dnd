@@ -10,7 +10,7 @@ from gtts import gTTS
 import pygame
 from flask import Flask, request, jsonify
 
-from brain_server_utils.llm_preproc_utils import *
+from brain_server_utils.llm_preproc_utils import GPT2, Qwen3, Mistral
 
 # file with all setting of the server and interaction modes
 CONFIG_YAML = "src/config/brain_server.yaml"
@@ -78,81 +78,78 @@ class Brain:
 
         @self.app.post("/chat")
         def chat():
-            out_list = []
-            for input in request.json:
-                prompt = input['text']
-                
-                # Generate response directly through GPT2 class
-                response = self.chat_model.chat(
-                    prompt#,
-                    #max_new_tokens=250,  # safer default for GPT-2
-                   # temperature=0.7
-                )
-                
-                out_list.append({
-                    'id': input['id'], 
-                    'response': response
-                })
-            return jsonify(out_list)
+            input_data = request.json or {}
+            prompt = input_data.get('text')
+            
+            # Generate response directly through GPT2 class
+            response = self.chat_model.chat(
+                prompt
+                # max_new_tokens=250,
+                # temperature=0.7
+            )
+            
+            return jsonify({
+                'id': request.json.get('id'),
+                'response': response
+            })
 
            
         @self.app.post("/tts")
         def text_to_speech():
-            out_list = []
+            input_data = request.json or {}
+            text = input_data.get('text', '')
+            language = input_data.get('language', 'en')  # fallback to English if not specified
 
-            for input in request.json:
-                text = input.get('text', '')
-                language = input.get('language', 'en')  # fallback to English if not specified
+            if not text.strip():
+                return jsonify({'id': input_data.get('id'), 'error': 'Empty text'})
+                
 
-                if not text.strip():
-                    out_list.append({'id': input.get('id'), 'error': 'Empty text'})
-                    continue
+            try:
+                # Generate audio in memory
+                tts = gTTS(text=text, lang=language, slow=False)
+                audio_buffer = BytesIO()
+                tts.write_to_fp(audio_buffer)
+                audio_buffer.seek(0)
+                
+                # Play directly from memory using pygame
+                pygame.mixer.init()
+                pygame.mixer.music.load(audio_buffer)
+                pygame.mixer.music.play()
+                
+                # Wait for playback to finish
+                while pygame.mixer.music.get_busy():
+                    pygame.time.wait(100)
 
-                try:
-                    # Generate audio in memory
-                    tts = gTTS(text=text, lang=language, slow=False)
-                    audio_buffer = BytesIO()
-                    tts.write_to_fp(audio_buffer)
-                    audio_buffer.seek(0)
-                    
-                    # Play directly from memory using pygame
-                    pygame.mixer.init()
-                    pygame.mixer.music.load(audio_buffer)
-                    pygame.mixer.music.play()
-                    
-                    # Wait for playback to finish
-                    while pygame.mixer.music.get_busy():
-                        pygame.time.wait(100)
+                # TODO: pass as audio stream instead of saying fromn server  
+                # TODO: check if this is correct AND if needed (result.XX is not initialized)
+                # results.append({'id': item_id, 'status': 'success'})
+                
+            except Exception as e:
+                pass    # TODO: manage
+                #results.append({'id': item_id, 'error': str(e)})
 
-                    # TODO: pass as audio stream instead of saying fromn server  
-                    # TODO: check if this is correct AND if needed (result.XX is not initialized)
-                    # results.append({'id': item_id, 'status': 'success'})
-                    
-                except Exception as e:
-                    pass    # TODO: manage
-                    #results.append({'id': item_id, 'error': str(e)})
-        
-            return jsonify(out_list)
+            # this is a placeholder, is it necessary? TODO
+            return jsonify({'status': 'success'})  #jsonify(out_list)   # TODO: is it necessary?
 
     
         @self.app.route("/stt", methods=["POST"])
         def speech_to_text():
-            # Get the audio file from the request
+            # Get the audio file and params from the request
             audio_file = request.files['file']
-            language = request.form.get('language')  # Read optional language parameter
-            
+            language = request.form.get('language', "")  
+
             # Read the audio bytes
             audio_bytes = audio_file.read()
-            
+
             # Save to a temporary path (whisper needs a file path)
             temp_path = "temp_audio.wav"
             with open(temp_path, "wb") as f:
                 f.write(audio_bytes)
-            
+
             # Load and process with whisper
             audio = whisper.load_audio(temp_path)
             audio = whisper.pad_or_trim(audio)
-            
+
             # Transcribe with or without language
             if language:
                 result = self.speech_2_text_model.transcribe(audio, language=language)
@@ -161,43 +158,31 @@ class Brain:
 
             # Delete temp file
             os.remove(temp_path)
-            
-            return {"text": result["text"]}
+
+            return jsonify({
+                "id": request.form.get("id", ""),
+                "text": result["text"]
+            })
+
 
 
         
 
     def init_llms(self):
-        # print(f"Loading model {CHAT_MODEL} into cache at {CACHE_DIR}… this may take a while if first run.")
-
-        # self.chat_tokenizer = AutoTokenizer.from_pretrained(
-        #     self.config["CHAT_MODEL"],
-        #     use_fast=False,          # SentencePiece-based models need slow tokenizer
-        #     cache_dir=self.config["CACHE_DIR"]
-        # )
-        # chat_model = AutoModelForCausalLM.from_pretrained(
-        #     self.config["CHAT_MODEL"],
-        #     cache_dir=self.config["CACHE_DIR"],
-        #     torch_dtype="auto"
-        # )
-
-        # self.chat_pipeline = pipeline(
-        #     "text-generation",
-        #     model=chat_model,
-        #     tokenizer=self.chat_tokenizer,
-        #     device=self.device,
-        #     return_full_text=False,  # Only return new tokens (major speedup)
-        #     clean_up_tokenization_spaces=False,  # Skip unnecessary processing
-        #     trust_remote_code=True
-        # )
-
-        # # Pre-compile prompt components for faster formatting
-        # self.system_prompt_prefix = "<|im_start|>system\nYou are a helpful AI assistant.<|im_end|>\n<|im_start|>user\n"
-        # self.user_prompt_suffix = "<|im_end|>\n<|im_start|>assistant\n"
-
-        # TODO: change model based on selection
-        # Load GPT-2 via class abstraction
-        self.chat_model = Qwen3(self.config)
+ 
+        # Load one of the supported models
+        print("[NOTE] Known supported models: teknium/OpenHermes-2.5-Mistral-7B, sshleifer/tiny-gpt2, Qwen/Qwen3-4B-Instruct-2507")
+        if "GPT-2" in self.config["CHAT_MODEL"]:
+            print("[DEBUG] Trying to load a GPT-2 based model...")
+            self.chat_model = GPT2(self.config)
+        elif "Qwen3" in self.config["CHAT_MODEL"]:
+            print("[DEBUG] Trying to load a Qwen3 based model...")
+            self.chat_model = Qwen3(self.config)
+        elif "Mistral" in self.config["CHAT_MODEL"]:
+            print("[DEBUG] Trying to load a Mistral based model...")
+            self.chat_model = Mistral(self.config)
+        else:
+            raise ValueError(f"""Impossible to load model: {self.config["CHAT_MODEL"]}""")
 
         self.speech_2_text_model = whisper.load_model(self.config["SPEECH_MODEL"])  
 

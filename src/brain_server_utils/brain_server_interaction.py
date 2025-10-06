@@ -4,6 +4,7 @@ import yaml
 import pyaudio
 import wave
 import io
+import time
 
 # file with all setting of the server and interaction modes
 CONFIG_YAML = "src/config/brain_server.yaml"
@@ -32,21 +33,24 @@ class BrainInteractor:
     def ask_llm(self, text:str):
         chat_url = f"{self.brain_url}/chat"
 
-        data = [
-            {"id": 1, "text": text},
-        ]
+        data = {
+            "id": str(time.time()).replace('.',''), 
+            "text": text
+        }
 
         response = requests.post(chat_url, json=data)
 
-        return response.json()[0]["response"]
+        return response.json()["response"]
 
 
     def say(self, text: str, language: str = "en"):
         tts_url =  f"{self.brain_url}/tts"
         
-        data = [
-            {"id": 1, "text": text, "language": language},
-        ]
+        data = {
+            "id": str(time.time()).replace('.',''), 
+            "text": text,
+            "language": language
+        }
 
         response = requests.post(tts_url, json=data)
         # result = response.json()[0]
@@ -148,6 +152,7 @@ class BrainInteractor:
         stt_url = f"{self.brain_url}/stt"
         files = {"file": ("audio.wav", audio_data, "audio/wav")}
         data = {"language": language} if language else {}
+        data["id"] = str(time.time()).replace('.','')
 
         response = requests.post(stt_url, files=files, data=data)
         return response.json()["text"]
