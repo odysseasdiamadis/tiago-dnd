@@ -8,7 +8,7 @@ import whisper
 from gtts import gTTS
 
 import pygame
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 
 from brain_server_utils.llm_preproc_utils import GPT2, Qwen3, Mistral
 
@@ -42,39 +42,6 @@ class Brain:
         def healthy():
             return "OK"
 
-        # @self.app.post("/chat")
-        # def chat():
-        #     out_list = []
-        #     for input in request.json:
-        #         prompt = input['text']
-                
-        #         # Format prompt for OpenHermes (uses ChatML format)
-        #         formatted_prompt = f"{self.system_prompt_prefix}{prompt}{self.user_prompt_suffix}"
-                        
-        #         # Generate response
-        #         response = self.chat_pipeline(
-        #             formatted_prompt, 
-        #             max_new_tokens=10000,    # NOTE: this defines if the answer will be truncated
-        #             do_sample=True, 
-        #             temperature=0.7,
-        #             pad_token_id=self.chat_tokenizer.pad_token_id,
-        #             eos_token_id=self.chat_tokenizer.eos_token_id
-        #         )[0]['generated_text']
-                
-        #         # # Extract only the assistant's response (needed if you set return_full_text=True)
-        #         # if "<|im_start|>assistant" in response:
-        #         #     response = response.split("<|im_start|>assistant")[-1].strip()
-        #         #     # Remove any end tokens
-        #         #     response = response.replace("<|im_end|>", "").strip()
-        #         # elif response.startswith(formatted_prompt):
-        #         #     response = response[len(formatted_prompt):].strip()
-
-        #         # Simpler cleanup if you set return_full_text=False
-        #         response = response.replace("<|im_end|>", "").strip()
-                
-        #         out_list.append({'id': input['id'], 'response': response})
-        #     return jsonify(out_list)
-
 
         @self.app.post("/chat")
         def chat():
@@ -94,15 +61,16 @@ class Brain:
             })
 
            
+
         @self.app.post("/tts")
         def text_to_speech():
             input_data = request.json or {}
             text = input_data.get('text', '')
-            language = input_data.get('language', 'en')  # fallback to English if not specified
+            language = input_data.get('language', 'en')
+            play_on_server = input_data.get('play_on_server', False)  # Toggle option
 
             if not text.strip():
-                return jsonify({'id': input_data.get('id'), 'error': 'Empty text'})
-                
+                return jsonify({'error': 'Empty text'}), 400
 
             try:
                 # Generate audio in memory
@@ -111,27 +79,32 @@ class Brain:
                 tts.write_to_fp(audio_buffer)
                 audio_buffer.seek(0)
                 
-                # Play directly from memory using pygame
-                pygame.mixer.init()
-                pygame.mixer.music.load(audio_buffer)
-                pygame.mixer.music.play()
-                
-                # Wait for playback to finish
-                while pygame.mixer.music.get_busy():
-                    pygame.time.wait(100)
-
-                # TODO: pass as audio stream instead of saying fromn server  
-                # TODO: check if this is correct AND if needed (result.XX is not initialized)
-                # results.append({'id': item_id, 'status': 'success'})
+                if play_on_server:
+                    # Play on server
+                    pygame.mixer.init()
+                    pygame.mixer.music.load(audio_buffer)
+                    pygame.mixer.music.play()
+                    
+                    # Wait for playback to finish
+                    while pygame.mixer.music.get_busy():
+                        pygame.time.wait(100)
+                    
+                    return jsonify({'status': 'success', 'played_on': 'server'})
+                else:
+                    # Stream the audio to client
+                    audio_buffer.seek(0)  # reset buffer position
+                    return send_file(
+                        audio_buffer,
+                        mimetype='audio/mpeg',
+                        as_attachment=False,
+                        download_name='speech.mp3'
+                    )
                 
             except Exception as e:
-                pass    # TODO: manage
-                #results.append({'id': item_id, 'error': str(e)})
+                return jsonify({'error': str(e)}), 500
+            
 
-            # this is a placeholder, is it necessary? TODO
-            return jsonify({'status': 'success'})  #jsonify(out_list)   # TODO: is it necessary?
-
-    
+            
         @self.app.route("/stt", methods=["POST"])
         def speech_to_text():
             # Get the audio file and params from the request

@@ -1,9 +1,11 @@
 from typing import Optional
 import requests
 import yaml
+import pygame
 import pyaudio
 import wave
-import io
+from io import BytesIO
+
 import time
 
 # file with all setting of the server and interaction modes
@@ -43,25 +45,42 @@ class BrainInteractor:
         return response.json()["response"]
 
 
-    def say(self, text: str, language: str = "en"):
-        tts_url =  f"{self.brain_url}/tts"
+    def say(self, text: str, language: str = "en", play_on_server: bool = False):
+        tts_url = f"{self.brain_url}/tts"
         
         data = {
-            "id": str(time.time()).replace('.',''), 
             "text": text,
-            "language": language
+            "language": language,
+            "play_on_server": play_on_server
         }
 
-        response = requests.post(tts_url, json=data)
-        # result = response.json()[0]
-
-        # # TODO: check audio saving in file, is it necessary?
-        # # TODO: does the SERVER play audio OR does this function do? This can cause problems if the server is hosted on another pc!!
-        # if "status" in result and result["status"] == "success":
-        #     print(f"[TTS] Audio saved to: {result['file']}")
-        # else:
-        #     print(f"[TTS] Error: {result.get('error', 'Unknown error')}")
-
+        try:
+            response = requests.post(tts_url, json=data, stream=True)
+            
+            if response.status_code == 200:
+                if play_on_server:
+                    # Server played the audio
+                    result = response.json()
+                    #print(f"[TTS] {result.get('status')} - played on {result.get('played_on')}")
+                else:
+                    # Play on client
+                    audio_buffer = BytesIO(response.content)
+                    
+                    pygame.mixer.init()
+                    pygame.mixer.music.load(audio_buffer)
+                    pygame.mixer.music.play()
+                    
+                    # Wait for playback to finish
+                    while pygame.mixer.music.get_busy():
+                        pygame.time.wait(100)
+                        
+                    #print("[TTS] Playback completed on client")
+            else:
+                error = response.json().get('error', 'Unknown error')
+                print(f"[TTS] Error: {error}")
+                
+        except Exception as e:
+            print(f"[TTS] Error: {str(e)}")
 
     def find_mic_index(self, p:pyaudio.PyAudio, auto_select:bool=False) -> int:
         """Tries to automatically find the correct microphone index for the device. 
@@ -132,7 +151,7 @@ class BrainInteractor:
         stream.close()
         
         # Create WAV file in memory
-        wav_buffer = io.BytesIO()
+        wav_buffer = BytesIO()
         wf = wave.open(wav_buffer, 'wb')
         wf.setnchannels(CHANNELS)
         wf.setsampwidth(p.get_sample_size(FORMAT))
