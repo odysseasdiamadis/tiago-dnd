@@ -36,7 +36,7 @@ class Player:
             yaw=data['yaw'], 
             face_position=tuple(data['face_position']),
             player_id=data['player_id'],
-            is_present=data['is_present'],
+            is_present=data.get('is_present', False),
             discovered_time=data['discovered_time'],
         )
         p.is_present = False

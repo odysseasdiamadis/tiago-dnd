@@ -22,6 +22,7 @@ from head_controller import HeadController
 from hand_controller import HandController
 from arm_controller import ArmController
 from face_processor import FaceProcessor
+from brain_server_interaction import BrainInteractor, CONFIG_YAML
 
 class EnhancedPlayerSearcher:
     """
@@ -46,6 +47,7 @@ class EnhancedPlayerSearcher:
         self.player_db = PlayerDatabase(players_file)
         self.arm_controller = ArmController()
         self.hand_controller = HandController()
+        self.brain_interactor = BrainInteractor(CONFIG_YAML)
         
         self.bbox_tolerance = 50
         # Load existing players
@@ -153,6 +155,7 @@ class EnhancedPlayerSearcher:
                     
                     rospy.loginfo(f"Hello player {new_player_id}! Nice to meet you!")
                     print(f"\n🎲 Hello player {new_player_id}! Nice to meet you! 🎲\n")
+                    self.brain_interactor.say(f"Hello player {new_player_id}! Nice to meet you!")
                     
                     # self.arm_controller.point_at_player(new_player, arm_distance=0.8, keep_elbow_down=True)
                     # Small delay between players
@@ -196,26 +199,25 @@ class EnhancedPlayerSearcher:
         rospy.loginfo("Starting player search demonstration...")
         
         # Search for players
-        players = self.search_and_analyze_players()
+        # players = self.search_and_analyze_players()
+        # self.player_db.save_players(players)
         
-        # Print summary
-        rospy.loginfo(self.get_player_summary())
-        players_to_look = [p for p in self.players if p.is_present == True]
-        if players_to_look:
-            # Look at each player in sequence
-            # rospy.loginfo("Looking at each player...")
-            # for player in sorted(players_to_look, key=lambda p: p.player_id):
-            #     rospy.loginfo(f"Looking at player {player.player_id}")
-            #     self.look_at_player(player.player_id)
-            #     rospy.sleep(1.0)
-            
-            # Return to first player
-            player = players_to_look[0]
-            rospy.loginfo(f"It's your turn, player {player.player_id}!")
-            self.look_at_player(player.player_id)
-            self.hand_controller.point_finger()
-            self.arm_controller.point_at_player(player)
-        
+        # # Print summary
+        # rospy.loginfo(self.get_player_summary())
+        # players_to_look = [p for p in self.players if p.is_present == True]
+        # if players_to_look:
+        #     player = players_to_look[0]
+        #     rospy.loginfo(f"It's your turn, player {player.player_id}!")
+        #     self.look_at_player(player.player_id)
+        #     self.hand_controller.point_finger()
+        #     self.arm_controller.point_at_player(player)
+        #     self.brain_interactor.say(f"It's your turn, player {player.player_id}!")
+
+        # players = self.player_db.load_players()
+        # self.arm_controller.point_at_player(players[0])
+        self.hand_controller.open_hand()
+        # self.arm_controller.point_at((1.0, 0, 0))
+
         rospy.loginfo("Player search demonstration complete!")
 
 

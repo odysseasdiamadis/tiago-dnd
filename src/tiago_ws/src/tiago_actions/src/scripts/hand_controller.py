@@ -1,65 +1,71 @@
 #!/usr/bin/env python
 
 import rospy
-import numpy as np
+import actionlib
+from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from typing import Dict, List, Optional
 
 
 class HandController:
-    """Controls TIAGo's PAL-HEY5 hand for gestures and grasping."""
+    """Controls TIAGo's hand for gestures and grasping."""
     
     def __init__(self):
-        # Initialize ROS publishers for hand control
-        self.hand_pub = rospy.Publisher('/hand_controller/command', JointTrajectory, queue_size=1)
+        # Initialize action client for hand control
+        self.hand_client = actionlib.SimpleActionClient(
+            '/hand_controller/follow_joint_trajectory', 
+            FollowJointTrajectoryAction
+        )
         
-        # PAL-HEY5 hand joint names (5-finger hand)
+        # TIAGo hand joint names (3 joints)
         self.joint_names = [
             'hand_thumb_joint',
             'hand_index_joint', 
-            'hand_middle_joint',
-            'hand_ring_joint',
-            'hand_little_joint'
+            'hand_mrl_joint'  # middle, ring, little combined
         ]
         
         # Control parameters
         self.movement_duration = 1.0  # seconds for hand movements
         self.gesture_duration = 0.5   # seconds for quick gestures
         
-        rospy.sleep(0.5)  # Wait for publisher to initialize
-        rospy.loginfo("Hand Controller initialized with PAL-HEY5 hand")
+        # Wait for action server
+        rospy.loginfo("Waiting for hand controller action server...")
+        self.hand_client.wait_for_server(timeout=rospy.Duration(10.0))
+        rospy.loginfo("Hand Controller initialized")
     
     def move_hand(self, joint_positions: List[float], duration: float = None) -> None:
         """
         Move TIAGo hand to specified joint positions.
         
         Args:
-            joint_positions: List of 5 joint positions (radians) for fingers
+            joint_positions: List of 3 joint positions (radians) for thumb, index, mrl
             duration: Duration for the movement in seconds
         """
         if duration is None:
             duration = self.movement_duration
             
-        if len(joint_positions) != 5:
-            rospy.logwarn(f"Expected 5 joint positions, got {len(joint_positions)}")
+        if len(joint_positions) != 3:
+            rospy.logwarn(f"Expected 3 joint positions, got {len(joint_positions)}")
             return
             
-        traj = JointTrajectory()
-        traj.joint_names = self.joint_names
+        # Create trajectory goal
+        goal = FollowJointTrajectoryGoal()
+        goal.trajectory.joint_names = self.joint_names
+        
         point = JointTrajectoryPoint()
         point.positions = joint_positions
         point.time_from_start = rospy.Duration(duration)
-        traj.points = [point]
+        goal.trajectory.points = [point]
         
-        self.hand_pub.publish(traj)
-        rospy.loginfo(f"Hand moving to positions: {[f'{pos:.2f}' for pos in joint_positions]}")
-        rospy.sleep(duration + 0.1)  # Wait for movement to complete
+        # Send goal and wait for completion
+        self.hand_client.send_goal_and_wait(goal, execute_timeout=rospy.Duration(duration + 2.0))
+        rospy.loginfo(f"Hand moved to positions: {[f'{pos:.2f}' for pos in joint_positions]}")
     
     def open_hand(self, duration: float = None) -> None:
         """Open all fingers completely."""
         if duration is None:
             duration = self.movement_duration
-        open_positions = [0.0, 0.0, 0.0, 0.0, 0.0]  # All fingers open
+        open_positions = [0.0, 0.0, 0.0]  # thumb, index, mrl open
         self.move_hand(open_positions, duration)
         rospy.loginfo("Hand opened")
     
@@ -67,7 +73,7 @@ class HandController:
         """Close all fingers completely."""
         if duration is None:
             duration = self.movement_duration
-        close_positions = [1.2, 1.2, 1.2, 1.2, 1.2]  # All fingers closed
+        close_positions = [1.2, 1.2, 1.2]  # thumb, index, mrl closed
         self.move_hand(close_positions, duration)
         rospy.loginfo("Hand closed")
     
@@ -75,7 +81,7 @@ class HandController:
         """Make a fist gesture."""
         if duration is None:
             duration = self.gesture_duration
-        fist_positions = [1.0, 1.2, 1.2, 1.2, 1.2]  # Thumb slightly less closed
+        fist_positions = [1.0, 1.2, 1.2]  # thumb, index, mrl - thumb slightly less closed
         self.move_hand(fist_positions, duration)
         rospy.loginfo("Hand making fist")
     
@@ -83,7 +89,7 @@ class HandController:
         """Point with index finger (pointing gesture)."""
         if duration is None:
             duration = self.gesture_duration
-        point_positions = [0.8, 0.0, 1.2, 1.2, 1.2]  # Index finger extended, others closed
+        point_positions = [0.8, 0.0, 1.2]  # thumb closed, index extended, mrl closed
         self.move_hand(point_positions, duration)
         rospy.loginfo("Hand pointing")
     
@@ -91,7 +97,7 @@ class HandController:
         """Make peace sign with index and middle finger."""
         if duration is None:
             duration = self.gesture_duration
-        peace_positions = [0.8, 0.0, 0.0, 1.2, 1.2]  # Index and middle extended
+        peace_positions = [0.8, 0.0, 0.6]  # thumb closed, index extended, mrl partially open
         self.move_hand(peace_positions, duration)
         rospy.loginfo("Hand making peace sign")
     
@@ -99,7 +105,7 @@ class HandController:
         """Thumbs up gesture."""
         if duration is None:
             duration = self.gesture_duration
-        thumbs_up_positions = [0.0, 1.2, 1.2, 1.2, 1.2]  # Thumb up, others closed
+        thumbs_up_positions = [0.0, 1.2, 1.2]  # thumb up, index and mrl closed
         self.move_hand(thumbs_up_positions, duration)
         rospy.loginfo("Hand making thumbs up")
     
@@ -107,7 +113,7 @@ class HandController:
         """Make OK sign with thumb and index finger."""
         if duration is None:
             duration = self.gesture_duration
-        ok_positions = [0.6, 0.6, 0.0, 0.0, 0.0]  # Thumb and index forming circle
+        ok_positions = [0.6, 0.6, 0.0]  # thumb and index partially closed, mrl open
         self.move_hand(ok_positions, duration)
         rospy.loginfo("Hand making OK sign")
     
@@ -122,11 +128,11 @@ class HandController:
         
         for i in range(wave_count):
             # Wave position 1 - fingers slightly bent
-            wave_pos1 = [0.2, 0.3, 0.3, 0.3, 0.3]
+            wave_pos1 = [0.2, 0.3, 0.3]
             self.move_hand(wave_pos1, 0.3)
             
             # Wave position 2 - fingers more bent
-            wave_pos2 = [0.4, 0.6, 0.6, 0.6, 0.6]
+            wave_pos2 = [0.4, 0.6, 0.6]
             self.move_hand(wave_pos2, 0.3)
         
         # Return to open position
@@ -150,9 +156,7 @@ class HandController:
         grasp_positions = [
             grip_strength * max_close,  # thumb
             grip_strength * max_close,  # index
-            grip_strength * max_close,  # middle  
-            grip_strength * max_close,  # ring
-            grip_strength * max_close   # little
+            grip_strength * max_close   # mrl (middle, ring, little)
         ]
         
         self.move_hand(grasp_positions, duration)
