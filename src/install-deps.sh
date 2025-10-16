@@ -9,8 +9,8 @@ if [ "$PWD" != "/" ]; then
     cd /
 fi
 
-# update system
-sudo apt update --yes
+# update system (fast-try without version update)
+# sudo apt update --yes
 sudo apt install python3-venv --yes
 
 # libs for audio I/O
@@ -36,30 +36,9 @@ else
 fi
 
 # Activate the virtual environment - not useful for now
-# source "$VENV_DIR/bin/activate"
+source "$VENV_DIR/bin/activate"
 
 
-# libs needed to use the models required for tiago brain
-# pip install transformers gtts flask 
-# pip install -U openai-whisper
-# pip install pyaudio
-
-
-# # pip install opencv-python tensorflow face_recognition numpy scipy
-
-
-# # face detection
-# #pip install face-recognition
-# pip install tensorflow==2.11.0 deepface
-# pip install ultralytics opencv-python
-# pip install supervision pillow
-# pip install deepface
-
-
-
-# remember to: (try fixing drivers)
-# glxinfo | grep -i 'OpenGL renderer'
-# sudo add-apt-repository ppa:kisak/kisak-mesa
-# sudo apt update --fix-missing
-# sudo apt upgrade --fix-missing
-# sudo apt install mesa-utils --yes
+# IMPORTANT: to make this script work you should run:
+# source ./src/install-deps.sh
+# This is needed to make the venv activation persistant. In case of updates to venv env, remove src/venv dir and re-run this script.
