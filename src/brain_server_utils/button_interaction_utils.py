@@ -3,6 +3,7 @@ from typing import Optional
 import pyaudio
 import tkinter as tk
 from tkinter import font as tkfont
+import time
 
 
 # from brain_server_interaction import BrainInteractor, CONFIG_YAML
@@ -111,47 +112,83 @@ class AudioRecorder:
         # ask user to select by hand the device id
         device_index = int(input("Enter the device index for your digital mic: "))
         return device_index
+    
 
-
-def create_record_window():
-    """Creates the UI to send a vocal message and interact with an llm for Tiago interactions."""
+def create_record_window(on_audio_ready=None):
+    """Creates the UI to send a vocal message and interact with an llm for Tiago interactions.
+    
+        @param on_audio_ready:  Optional callback function that receives audio_bytes when recording stops.
+                                If None, no processing is done (just prints debug info).
+    """
     # GUI setup
     window = tk.Tk()
     window.title("Tieni premuto per parlare con Tiago.")
     window.geometry("800x640")
-    window.wm_attributes("-topmost", True)    # Set window to always appear on top
+    window.wm_attributes("-topmost", True)
 
     # Create recorder with window as master
     recorder = AudioRecorder(window)
+    
+    # Flag to avoid multiple simultaneous processes (this stops the user to interact with button until processing is cvompleted)
+    is_processing = False
 
     def on_press(event):
         """Starts the recording when button is pressed."""
+        # Block if still processing previous audio
+        if is_processing:
+            print("[DEBUG] Still processing lasr audio, ignoring press")
+            return
+            
         try:
             recorder.start_recording()
-            event.widget.config(bg="green", text="Registrando...\nRilascia il bottone per fermare")
+            event.widget.config(bg="green", text="Sto registrando...\nRilascia per fermare")
             print("[DEBUG] Recording started...")
         except Exception as e:
             print(f"Error starting recording: {e}")
             event.widget.config(bg="red", text="Errore!")
 
     def on_release(event):
-        """Stops the recording and starts the audio processing for an llm response."""
+        """Stops the recording and passes audio bytes to callback."""
+        nonlocal is_processing
+        
+        # Don't process if not currently recording
+        if not recorder.recording:
+            return
+            
         try:
             audio_bytes = recorder.stop_recording()
-            event.widget.config(bg="lightgray", text="Tieni premuto\nper registrare")
+            button = event.widget
+            
+            # Set processing flag to block new recordings
+            is_processing = True
+            
+            # Show processing state and disable button
+            button.config(bg="yellow", text="Elaborazione in corso, pulsante disattivato...", state="disabled")
+            window.update()  # Force UI to update
+            
             print(f"[DEBUG] Recording stopped. Audio size: {len(audio_bytes)} bytes")
+            print("[DEBUG] Processing started - UI blocked")
             
-            # process the audio_bytes
-            # transcription = transcribe(audio_bytes, "it")
-            # print(f"[DEBUG]You said: \n{transcription}")
-            # llm_answer = ask_llm(transcription)
-            # print(f"[DEBUG]The LLM responded: \n{llm_answer}")
-            # say(llm_answer, language="it")
-            
+            # Process audio (blocking - UI will freeze until is done)
+            try:
+                if on_audio_ready:
+                    on_audio_ready(audio_bytes)
+                print("[DEBUG] Processing complete")
+            except Exception as e:
+                print(f"Error processing audio: {e}")
+                button.config(bg="red", text="Errore!!!")
+                window.update()
+                window.after(2000, lambda: None)  # Show an error for 2 seconds
+            finally:
+                # Always reset state when done
+                is_processing = False
+                button.config(bg="lightgray", text="Tieni premuto\nper registrare", state="normal")
+                window.update()
             
         except Exception as e:
             print(f"Error stopping recording: {e}")
-            event.widget.config(bg="red", text="Errore!")
+            event.widget.config(bg="red", text="Errore!!!", state="normal")
+            is_processing = False
 
     # Set up recording button
     recording_button = tk.Button(window, 
@@ -161,31 +198,27 @@ def create_record_window():
                                  height=10,
                                  bg="lightgray"
                                  )
-    recording_button.pack(expand=True)      # center the button
+    recording_button.pack(expand=True)
       
     # Bind mouse press and release
     recording_button.bind("<ButtonPress-1>", on_press)
     recording_button.bind("<ButtonRelease-1>", on_release)
 
-    # Ensure pyaudio properly released when window closes
+    # Ensure pyaudio is properly released when window closes
     def on_window_close():
         try:
-            # Stop recording if it's currently active
             if recorder.recording:
                 recorder.stop_recording()
             
-            # Cancel any pending after calls
             if recorder.after_id:
                 window.after_cancel(recorder.after_id)
             
-            # Terminate the recorder
             recorder.terminate()
         except Exception as e:
             print(f"Error during cleanup: {e}")
         finally:
-            # Force destroy the window
-            window.quit()  # This exits the mainloop
-            window.destroy()  # This destroys the window
+            window.quit()
+            window.destroy()
     
     window.protocol("WM_DELETE_WINDOW", on_window_close)
     
@@ -194,5 +227,13 @@ def create_record_window():
 
 # Main execution
 if __name__ == "__main__":
-    interaction_gui, recorder = create_record_window()
+    
+    # TODO: custom handler (customize when using with Tiago)
+    def handle_audio(audio_bytes):
+        print(f"Got {len(audio_bytes)} bytes of audio!")    
+        # Simulate processing time (transcription, LLM, TTS, etc.)
+        time.sleep(3) # change, of course    
+        print("Process complete!")
+    
+    interaction_gui, recorder = create_record_window(on_audio_ready=handle_audio)
     interaction_gui.mainloop()
