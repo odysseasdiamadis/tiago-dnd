@@ -5986,6 +5986,33 @@
       <model name='tiago'>
         <pose>-1.11478 0.013236 -0.001674 0.006554 0.0011 0.095047</pose>
         <scale>1 1 1</scale>
+
+          <joint name='hand_thumb_joint'>
+            <angle>0</angle>
+          </joint>
+          <joint name='hand_thumb_abd_joint'>
+            <angle>0</angle>
+          </joint>
+          <joint name='hand_index_joint'>
+            <angle>0</angle>
+          </joint>
+          <joint name='hand_index_abd_joint'>
+            <angle>0</angle>
+          </joint>
+          <joint name='hand_mrl_joint'>
+            <angle>0</angle>
+          </joint>
+          <joint name='hand_middle_abd_joint'>
+            <angle>0</angle>
+          </joint>
+          <joint name='hand_ring_abd_joint'>
+            <angle>0</angle>
+          </joint>
+          <joint name='hand_little_abd_joint'>
+            <angle>0</angle>
+          </joint>
+
+
         <link name='arm_1_link'>
           <pose>-1.02163 0.029096 1.0736 -0.000653 0.006667 -1.34257</pose>
           <velocity>9e-06 3.9e-05 -1e-06 -7e-06 1.6e-05 7.6e-05</velocity>
