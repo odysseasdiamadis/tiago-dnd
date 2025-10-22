@@ -12,6 +12,7 @@ from huggingface_hub import hf_hub_download
 from ultralytics import YOLO
 from PIL import Image as PILImage
 import numpy as np
+import json
 from deepface import DeepFace
 from scipy.spatial.distance import cosine
 
@@ -144,19 +145,25 @@ class EnhancedPlayerSearcher:
                         continue
                     
                     # 6) Save the player with the current centered yaw
+                    # self.players = self.player_db.load_players()
+                    new_players_count += 1
+                    rospy.loginfo(f"\n🎲 New player found! 🎲\n")
+                    
+                    self.brain_interactor.say(f"Ciao avventuriero! Come ti chiami? E cosa vuoi giocare oggi?", language='it')
+
+                    name_and_class = self.brain_interactor.ask_player_name_and_class()
+                    name_and_class = json.loads(name_and_class)
+                    rospy.loginfo(f"Name and class: {name_and_class}")
+
                     new_player_id = self.player_db.get_next_player_id()
                     new_player = self.face_processor.create_new_player(
-                        embedding, final_yaw, centered_bbox, new_player_id
+                        embedding, final_yaw, centered_bbox, new_player_id, name_and_class['name'], name_and_class['class']
                     )
                     
                     self.player_db.add_player(new_player)
-                    # self.players = self.player_db.load_players()
-                    new_players_count += 1
-                    
-                    rospy.loginfo(f"Hello player {new_player_id}! Nice to meet you!")
-                    print(f"\n🎲 Hello player {new_player_id}! Nice to meet you! 🎲\n")
-                    self.brain_interactor.say(f"Hello player {new_player_id}! Nice to meet you!")
-                    
+                    rospy.loginfo(f"New player: {new_player}")
+                    self.brain_interactor.welcome_new_player(new_player)
+
                     # self.arm_controller.point_at_player(new_player, arm_distance=0.8, keep_elbow_down=True)
                     # Small delay between players
                     # rospy.sleep(0.5)
@@ -200,23 +207,37 @@ class EnhancedPlayerSearcher:
         
         # Search for players
         players = self.search_and_analyze_players()
-        self.player_db.save_players(players)
+        # self.player_db.save_players(players)
         
-        # Print summary
-        rospy.loginfo(self.get_player_summary())
+        # # # Print summary
+        # # rospy.loginfo(self.get_player_summary())
         players_to_look = [p for p in self.players if p.is_present == True]
+
         if players_to_look:
             player = players_to_look[0]
             rospy.loginfo(f"It's your turn, player {player.player_id}!")
             self.look_at_player(player.player_id)
-            self.hand_controller.point_finger()
+            self.hand_controller.open_hand()
             self.arm_controller.point_at_player(player)
-            self.brain_interactor.say(f"It's your turn, player {player.player_id}!")
+            answer = self.brain_interactor.ask_llm(f'''
+tu sei un dungeon master. Il tuo compito è iniziare una nuova avventura. Al momento è il turno di {player.name}, che è un {player.klass}.
+I giocatori al tavolo sono:
+- {players_to_look[0].name} di classe {players_to_look[0].klass}
+- {players_to_look[1].name} di classe {players_to_look[1].klass}
 
-        players = self.player_db.load_players()
-        self.arm_controller.point_at_player(players[0])
-        self.hand_controller.open_hand()
-        self.arm_controller.point_at((1.0, 0, 0))
+Inventa un inizio di avventura che preveda un'ambientazione in cui si trovano i personaggi. Cerca di inventare qualcosa che sia coinvolgente per i
+giocatori e la classe che hanno scelto. Non superare le cinque-sei frasi. Inoltre, non usare segni come asterischi, trattini o underscore. Scrivi il testo
+così come lo pronunceresti.
+Infine, chiedi al giocatore cosa vuole fare.
+''')
+            self.brain_interactor.say(answer)
+
+        # players = self.player_db.load_players()
+        # self.hand_controller.close_hand()
+
+        # yaws: -0.60, 
+
+        # self.arm_controller.point_at((1.0, 0, 0))
 
         rospy.loginfo("Player search demonstration complete!")
 

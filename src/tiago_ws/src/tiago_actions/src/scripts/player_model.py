@@ -13,6 +13,8 @@ class Player:
     face_position: tuple
     is_present: bool
     player_id: int
+    klass: str
+    name: str
     discovered_time: str = None
     ammonitions: int = 0
     
@@ -38,6 +40,8 @@ class Player:
             player_id=data['player_id'],
             is_present=data.get('is_present', False),
             discovered_time=data['discovered_time'],
+            klass=data['class'],
+            name=data['name']
         )
         p.is_present = False
         return p
