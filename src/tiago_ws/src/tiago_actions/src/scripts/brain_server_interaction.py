@@ -179,7 +179,7 @@ class BrainInteractor:
 
 
     def ask_player_name_and_class(self):
-        data = self.hear(device_index=6)
+        data = self.hear()
         player_answer = self.transcribe(data, language='it')
         prompt = f'''
 Il tuo compito è classificare una risposta di un giocatore per ottenere nome e classe per un'avventura in stile Dungeons and Dragons.
