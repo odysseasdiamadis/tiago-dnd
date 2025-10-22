@@ -199,31 +199,46 @@ class EnhancedPlayerSearcher:
         rospy.loginfo("Starting player search demonstration...")
         
         # Search for players
-        # players = self.search_and_analyze_players()
-        # self.player_db.save_players(players)
+        players = self.search_and_analyze_players()
+        self.player_db.save_players(players)
         
-        # # Print summary
-        # rospy.loginfo(self.get_player_summary())
-        # players_to_look = [p for p in self.players if p.is_present == True]
-        # if players_to_look:
-        #     player = players_to_look[0]
-        #     rospy.loginfo(f"It's your turn, player {player.player_id}!")
-        #     self.look_at_player(player.player_id)
-        #     self.hand_controller.point_finger()
-        #     self.arm_controller.point_at_player(player)
-        #     self.brain_interactor.say(f"It's your turn, player {player.player_id}!")
+        # Print summary
+        rospy.loginfo(self.get_player_summary())
+        players_to_look = [p for p in self.players if p.is_present == True]
+        if players_to_look:
+            player = players_to_look[0]
+            rospy.loginfo(f"It's your turn, player {player.player_id}!")
+            self.look_at_player(player.player_id)
+            self.hand_controller.point_finger()
+            self.arm_controller.point_at_player(player)
+            self.brain_interactor.say(f"It's your turn, player {player.player_id}!")
 
-        # players = self.player_db.load_players()
-        # self.arm_controller.point_at_player(players[0])
+        players = self.player_db.load_players()
+        self.arm_controller.point_at_player(players[0])
         self.hand_controller.open_hand()
-        # self.arm_controller.point_at((1.0, 0, 0))
+        self.arm_controller.point_at((1.0, 0, 0))
 
         rospy.loginfo("Player search demonstration complete!")
+
+    def run_face_reco_demo(self):
+        image, detections = self.head_controller.detect_faces_in_current_view(self.model)
+        pil_image = PILImage.fromarray(image)
+        emb1 = self.face_processor.extract_face_embedding(pil_image, detections.xyxy[0])
+        emb2 = self.face_processor.extract_face_embedding(pil_image, detections.xyxy[0])
+        self.head_controller.move_head(-0.5)
+        emb3 = self.face_processor.extract_face_embedding(pil_image, detections.xyxy[0])
+        print(detections)
+        print("Similarity 1 and 2: " + str(compare_embeddings(emb1, emb2)) )
+        print("Similarity 2 and 3: " + str(compare_embeddings(emb2, emb3)) )
+        print("Similarity 1 and 3: " + str(compare_embeddings(emb1, emb3)) )
+
+        self.head_controller.move_head(-0.9)
 
 
 if __name__ == '__main__':
     try:
         node = EnhancedPlayerSearcher(-1.20, 1.20, 0.3)
         node.run_search_demo()
+        # node.run_face_reco_demo()
     except rospy.ROSInterruptException:
         pass

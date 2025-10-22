@@ -9,13 +9,20 @@ from PIL import Image as PILImage
 from deepface import DeepFace
 from detection import compare_embeddings, scale_bbox
 from player_model import Player
-
+import torch
 
 class FaceProcessor:
     def __init__(self, similarity_threshold: float = 0.85, border_margin: int = 50, scale_factor: float = 1):
         self.similarity_threshold = similarity_threshold
         self.border_margin = 50  # pixels to avoid faces on image borders
         self.scale_factor = scale_factor
+        self.model_name = "Facenet"
+        print("[FACEPROCESSOR]: CUDA AVAILABLE: " + str(torch.cuda.is_available()))
+        rospy.loginfo("Pre-loading Facenet model...")
+
+        self.model = DeepFace.build_model(self.model_name)
+        rospy.loginfo("Facenet model loaded successfully")
+
     
     def extract_face_embedding(self, image: PILImage.Image, bbox: Tuple[float, float, float, float]) -> Optional[np.ndarray]:
         x1, y1, x2, y2 = map(int, bbox)
