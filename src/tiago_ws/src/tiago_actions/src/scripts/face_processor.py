@@ -2,25 +2,24 @@
 
 import rospy
 import numpy as np
-import torch
+import tempfile
+import os
 from typing import Optional, Tuple, List
 from PIL import Image as PILImage
-from facenet_pytorch import InceptionResnetV1
+from deepface import DeepFace
 from detection import compare_embeddings, scale_bbox
 from player_model import Player
 import torch
 
 class FaceProcessor:
-    def __init__(self, similarity_threshold: float = 0.85, border_margin: int = 50, scale_factor: float = 1.5):
+    def __init__(self, similarity_threshold: float = 0.85, border_margin: int = 50, scale_factor: float = 1):
         self.similarity_threshold = similarity_threshold
-        self.border_margin = border_margin  # pixels to avoid faces on image borders
+        self.border_margin = 50  # pixels to avoid faces on image borders
         self.scale_factor = scale_factor
-        self.model_name = "Facenet"
         print("[FACEPROCESSOR]: CUDA AVAILABLE: " + str(torch.cuda.is_available()))
-        rospy.loginfo("Pre-loading Facenet model...")
-
-        self.model = DeepFace.build_model(self.model_name)
-        rospy.loginfo("Facenet model loaded successfully")
+        rospy.loginfo("Preloading Facenet model...")
+        self.model = DeepFace.build_model("Facenet")
+        rospy.loginfo("Facenet model preloaded successfully")
 
     
     def extract_face_embedding(self, image: PILImage.Image, bbox: Tuple[float, float, float, float]) -> Optional[np.ndarray]:
@@ -39,24 +38,27 @@ class FaceProcessor:
                                                  image_width=image_width, image_height=image_height)
             cropped_face = image.crop((x1_s, y1_s, x2_s, y2_s))
             
-            # Resize to 160x160 (required input size for FaceNet)
-            cropped_face = cropped_face.resize((160, 160), PILImage.BILINEAR)
+            with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
+                cropped_face.save(tmp.name)
+                tmp_path = tmp.name
             
-            # Convert PIL image to tensor
-            # Normalize to [-1, 1] range as expected by the model
-            face_array = np.array(cropped_face).astype(np.float32)
-            face_array = (face_array - 127.5) / 128.0  # Normalize to [-1, 1]
-            
-            # Convert to tensor and add batch dimension
-            face_tensor = torch.from_numpy(face_array).permute(2, 0, 1).unsqueeze(0).to(self.device)
-            
-            rospy.loginfo("Extracting face embedding...")
-            with torch.no_grad():
-                embedding = self.face_model(face_tensor).cpu().numpy().flatten()
-            
-            rospy.loginfo("Face embedding extracted successfully")
-            return embedding
+            try:
+                rospy.loginfo("Extracting face embedding...")
+                embedding_data = DeepFace.represent(tmp_path, model_name="Facenet", enforce_detection=False)
+                if embedding_data:
+                    embedding = np.array(embedding_data[0]['embedding'])
+                    rospy.loginfo("Face embedding extracted successfully")
+                    return embedding
+                else:
+                    rospy.logwarn("DeepFace returned empty embedding data")
+                    return None
                     
+            except Exception as e:
+                rospy.logerr(f"Error in DeepFace embedding extraction: {e}")
+                return None
+            finally:
+                os.remove(tmp_path)
+                
         except Exception as e:
             rospy.logerr(f"Error in face processing: {e}")
             return None
@@ -83,7 +85,7 @@ class FaceProcessor:
         
         return new_distance_from_center < old_distance_from_center
     
-    def create_new_player(self, face_embedding: np.ndarray, yaw: float, bbox: Tuple[float, float, float, float], player_id: int, klass: str, name: str) -> Player:
+    def create_new_player(self, face_embedding: np.ndarray, yaw: float, bbox: Tuple[float, float, float, float], player_id: int, name: str, klass: str) -> Player:
         return Player(
             face_embedding=face_embedding.tolist(),
             yaw=yaw,
@@ -91,7 +93,7 @@ class FaceProcessor:
             face_position=bbox,
             player_id=player_id,
             klass=klass,
-            name=name,
+            name=name
         )
     
     def update_player_data(self, player: Player, face_embedding: np.ndarray, 
@@ -101,16 +103,3 @@ class FaceProcessor:
         player.yaw = yaw
         player.face_position = bbox
         return player
-
-
-if __name__ == "__main__":
-    # Test GPU availability
-    import torch
-    print("CUDA Available: ", torch.cuda.is_available())
-    if torch.cuda.is_available():
-        print("GPU Device: ", torch.cuda.get_device_name(0))
-        print("GPU Memory: ", torch.cuda.get_device_properties(0).total_memory / 1024**3, "GB")
-    
-    # Test the face processor
-    processor = FaceProcessor()
-    print("FaceProcessor initialized successfully!")
