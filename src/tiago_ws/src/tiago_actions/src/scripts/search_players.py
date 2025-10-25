@@ -35,14 +35,15 @@ class EnhancedPlayerSearcher:
     """
     
     def __init__(self, scan_start: float = -1.0, scan_end: float = 1.0, 
-                 scan_step: float = 0.3, players_file: str = 'players_database.json'):
+                 scan_step: float = 0.3, players_file: str = 'players_database.json', audio_device_idx=0):
         rospy.init_node('enhanced_player_searcher', anonymous=True)
         
+        self.audio_device_idx = audio_device_idx
         # Initialize components
         self.head_controller = HeadController()
         self.face_processor = FaceProcessor(
             similarity_threshold=0.9, # threshold for cosine similarity
-            scale_factor=2,           # scale factor of the cropped face
+            scale_factor=1,           # scale factor of the cropped face
             border_margin=50,         # margin from the borders of the camera from which to consider faces
         )
         self.player_db = PlayerDatabase(players_file)
@@ -151,7 +152,7 @@ class EnhancedPlayerSearcher:
                     
                     self.brain_interactor.say(f"Ciao avventuriero! Come ti chiami? E cosa vuoi giocare oggi?", language='it')
 
-                    name_and_class = self.brain_interactor.ask_player_name_and_class()
+                    name_and_class = self.brain_interactor.ask_player_name_and_class(device_idx=self.audio_device_idx)
                     name_and_class = json.loads(name_and_class)
                     rospy.loginfo(f"Name and class: {name_and_class}")
 
@@ -241,25 +242,33 @@ Infine, chiedi al giocatore cosa vuole fare.
 
         rospy.loginfo("Player search demonstration complete!")
 
-    def run_face_reco_demo(self):
-        image, detections = self.head_controller.detect_faces_in_current_view(self.model)
-        pil_image = PILImage.fromarray(image)
-        emb1 = self.face_processor.extract_face_embedding(pil_image, detections.xyxy[0])
-        emb2 = self.face_processor.extract_face_embedding(pil_image, detections.xyxy[0])
-        self.head_controller.move_head(-0.5)
-        emb3 = self.face_processor.extract_face_embedding(pil_image, detections.xyxy[0])
-        print(detections)
-        print("Similarity 1 and 2: " + str(compare_embeddings(emb1, emb2)) )
-        print("Similarity 2 and 3: " + str(compare_embeddings(emb2, emb3)) )
-        print("Similarity 1 and 3: " + str(compare_embeddings(emb1, emb3)) )
+    def run_face_reco_demo(self, folder, n_faces=6):
+        import io
+        from PIL import Image
+        from deepface import DeepFace
+        self.model = DeepFace.build_model("Facenet")
+        import torch
+        import torch.nn.functional as F
 
-        self.head_controller.move_head(-0.9)
+        face_files = [f'{folder}/face_000{i+1}.jpg' for i in range(n_faces)]
+        embeddings = []
+        for face in face_files:
+            embedding_data = DeepFace.represent(face, model_name="Facenet", enforce_detection=False)
+            embeddings.append(torch.tensor(embedding_data[0]['embedding']))
+
+        embds = torch.stack(embeddings)  # shape: (n, d)
+        X_normalized = F.normalize(embds, p=2, dim=1)
+        # Compute similarity via matrix multiplication
+        cos_sim_matrix = torch.mm(X_normalized, X_normalized.t())
+        print(cos_sim_matrix.shape)
+        for i in range(cos_sim_matrix.shape[0]):
+            print(cos_sim_matrix[i])
 
 
 if __name__ == '__main__':
     try:
         node = EnhancedPlayerSearcher(-1.20, 1.20, 0.3)
         node.run_search_demo()
-        # node.run_face_reco_demo()
+        # node.run_face_reco_demo('.')
     except rospy.ROSInterruptException:
         pass
