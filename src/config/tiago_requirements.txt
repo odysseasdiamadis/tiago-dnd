@@ -22,3 +22,6 @@ supervision
 
 # Web
 flask
+
+# Robotics
+rospkg

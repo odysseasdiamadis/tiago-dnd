@@ -1,5 +1,8 @@
 #!/bin/bash
 #
+
+# start-up
+# xhost +local:docker   # avoid gpu breaking tiago gui. How? Who knows. To do before running this script.
 set -x
 
 # Get the actual user info when running with sudo
