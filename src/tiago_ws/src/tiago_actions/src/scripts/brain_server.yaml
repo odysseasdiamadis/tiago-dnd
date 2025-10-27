@@ -1,0 +1,16 @@
+# Connection params:
+SERVER_URL: "http://192.168.2.57"                    # IP of the computer on which the server will be hosted on. If on the same net, it should be something like 192.168.X.X.
+SERVER_PORT: 5001                                      # Port to open on the above specified computer
+
+# Models used here
+# VISION_MODEL = "TODO"
+CHAT_MODEL: "sshleifer/tiny-gpt2"        # LLM to use. Natively supported: "teknium/OpenHermes-2.5-Mistral-7B", "sshleifer/tiny-gpt2"
+SPEECH_MODEL: "large"                                  # Whisper model to use. Available: "tiny", "small", "base", "large"
+TTS_MODEL: "gtts"                                      # Text to speech mode
+
+# General params
+CACHE_DIR: "src/cache/hugginface/"                     # Where to save models to avoid downloading again
+
+
+# NOTE:
+# This file contains a template for the global vars to instantiate or communicate with the Brain server.

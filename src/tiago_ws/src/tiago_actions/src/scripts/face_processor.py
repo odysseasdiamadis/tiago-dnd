@@ -9,13 +9,18 @@ from PIL import Image as PILImage
 from deepface import DeepFace
 from detection import compare_embeddings, scale_bbox
 from player_model import Player
-
+import torch
 
 class FaceProcessor:
     def __init__(self, similarity_threshold: float = 0.85, border_margin: int = 50, scale_factor: float = 1):
         self.similarity_threshold = similarity_threshold
         self.border_margin = 50  # pixels to avoid faces on image borders
         self.scale_factor = scale_factor
+        print("[FACEPROCESSOR]: CUDA AVAILABLE: " + str(torch.cuda.is_available()))
+        rospy.loginfo("Preloading Facenet model...")
+        self.model = DeepFace.build_model("Facenet")
+        rospy.loginfo("Facenet model preloaded successfully")
+
     
     def extract_face_embedding(self, image: PILImage.Image, bbox: Tuple[float, float, float, float]) -> Optional[np.ndarray]:
         x1, y1, x2, y2 = map(int, bbox)
@@ -80,13 +85,15 @@ class FaceProcessor:
         
         return new_distance_from_center < old_distance_from_center
     
-    def create_new_player(self, face_embedding: np.ndarray, yaw: float, bbox: Tuple[float, float, float, float], player_id: int) -> Player:
+    def create_new_player(self, face_embedding: np.ndarray, yaw: float, bbox: Tuple[float, float, float, float], player_id: int, name: str, klass: str) -> Player:
         return Player(
             face_embedding=face_embedding.tolist(),
             yaw=yaw,
             is_present=True,
             face_position=bbox,
-            player_id=player_id
+            player_id=player_id,
+            klass=klass,
+            name=name
         )
     
     def update_player_data(self, player: Player, face_embedding: np.ndarray, 

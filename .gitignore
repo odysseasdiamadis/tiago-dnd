@@ -18,3 +18,5 @@ src/venv/
 src/tiago_ws/logs
 src/tiago_ws/.catkin_tools
 src/tiago_ws/build
+
+**/__pycache__/**

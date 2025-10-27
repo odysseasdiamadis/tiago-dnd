@@ -12,6 +12,7 @@ from huggingface_hub import hf_hub_download
 from ultralytics import YOLO
 from PIL import Image as PILImage
 import numpy as np
+import json
 from deepface import DeepFace
 from scipy.spatial.distance import cosine
 
@@ -34,14 +35,15 @@ class EnhancedPlayerSearcher:
     """
     
     def __init__(self, scan_start: float = -1.0, scan_end: float = 1.0, 
-                 scan_step: float = 0.3, players_file: str = 'players_database.json'):
+                 scan_step: float = 0.3, players_file: str = 'players_database.json', audio_device_idx=0):
         rospy.init_node('enhanced_player_searcher', anonymous=True)
         
+        self.audio_device_idx = audio_device_idx
         # Initialize components
         self.head_controller = HeadController()
         self.face_processor = FaceProcessor(
             similarity_threshold=0.9, # threshold for cosine similarity
-            scale_factor=2,           # scale factor of the cropped face
+            scale_factor=1,           # scale factor of the cropped face
             border_margin=50,         # margin from the borders of the camera from which to consider faces
         )
         self.player_db = PlayerDatabase(players_file)
@@ -144,19 +146,25 @@ class EnhancedPlayerSearcher:
                         continue
                     
                     # 6) Save the player with the current centered yaw
+                    # self.players = self.player_db.load_players()
+                    new_players_count += 1
+                    rospy.loginfo(f"\n🎲 New player found! 🎲\n")
+                    
+                    self.brain_interactor.say(f"Ciao avventuriero! Come ti chiami? E cosa vuoi giocare oggi?", language='it')
+
+                    name_and_class = self.brain_interactor.ask_player_name_and_class(device_idx=self.audio_device_idx)
+                    name_and_class = json.loads(name_and_class)
+                    rospy.loginfo(f"Name and class: {name_and_class}")
+
                     new_player_id = self.player_db.get_next_player_id()
                     new_player = self.face_processor.create_new_player(
-                        embedding, final_yaw, centered_bbox, new_player_id
+                        embedding, final_yaw, centered_bbox, new_player_id, name_and_class['name'], name_and_class['class']
                     )
                     
                     self.player_db.add_player(new_player)
-                    # self.players = self.player_db.load_players()
-                    new_players_count += 1
-                    
-                    rospy.loginfo(f"Hello player {new_player_id}! Nice to meet you!")
-                    print(f"\n🎲 Hello player {new_player_id}! Nice to meet you! 🎲\n")
-                    self.brain_interactor.say(f"Hello player {new_player_id}! Nice to meet you!")
-                    
+                    rospy.loginfo(f"New player: {new_player}")
+                    self.brain_interactor.welcome_new_player(new_player)
+
                     # self.arm_controller.point_at_player(new_player, arm_distance=0.8, keep_elbow_down=True)
                     # Small delay between players
                     # rospy.sleep(0.5)
@@ -199,31 +207,68 @@ class EnhancedPlayerSearcher:
         rospy.loginfo("Starting player search demonstration...")
         
         # Search for players
-        # players = self.search_and_analyze_players()
+        players = self.search_and_analyze_players()
         # self.player_db.save_players(players)
         
-        # # Print summary
-        # rospy.loginfo(self.get_player_summary())
-        # players_to_look = [p for p in self.players if p.is_present == True]
-        # if players_to_look:
-        #     player = players_to_look[0]
-        #     rospy.loginfo(f"It's your turn, player {player.player_id}!")
-        #     self.look_at_player(player.player_id)
-        #     self.hand_controller.point_finger()
-        #     self.arm_controller.point_at_player(player)
-        #     self.brain_interactor.say(f"It's your turn, player {player.player_id}!")
+        # # # Print summary
+        # # rospy.loginfo(self.get_player_summary())
+        players_to_look = [p for p in self.players if p.is_present == True]
+
+        if players_to_look:
+            player = players_to_look[0]
+            rospy.loginfo(f"It's your turn, player {player.player_id}!")
+            self.look_at_player(player.player_id)
+            self.hand_controller.open_hand()
+            self.arm_controller.point_at_player(player)
+            answer = self.brain_interactor.ask_llm(f'''
+tu sei un dungeon master. Il tuo compito è iniziare una nuova avventura. Al momento è il turno di {player.name}, che è un {player.klass}.
+I giocatori al tavolo sono:
+- {players_to_look[0].name} di classe {players_to_look[0].klass}
+- {players_to_look[1].name} di classe {players_to_look[1].klass}
+
+Inventa un inizio di avventura che preveda un'ambientazione in cui si trovano i personaggi. Cerca di inventare qualcosa che sia coinvolgente per i
+giocatori e la classe che hanno scelto. Non superare le cinque-sei frasi. Inoltre, non usare segni come asterischi, trattini o underscore. Scrivi il testo
+così come lo pronunceresti.
+Infine, chiedi al giocatore cosa vuole fare.
+''')
+            self.brain_interactor.say(answer)
 
         # players = self.player_db.load_players()
-        # self.arm_controller.point_at_player(players[0])
-        self.hand_controller.open_hand()
+        # self.hand_controller.close_hand()
+
+        # yaws: -0.60, 
+
         # self.arm_controller.point_at((1.0, 0, 0))
 
         rospy.loginfo("Player search demonstration complete!")
+
+    def run_face_reco_demo(self, folder, n_faces=6):
+        import io
+        from PIL import Image
+        from deepface import DeepFace
+        self.model = DeepFace.build_model("Facenet")
+        import torch
+        import torch.nn.functional as F
+
+        face_files = [f'{folder}/face_000{i+1}.jpg' for i in range(n_faces)]
+        embeddings = []
+        for face in face_files:
+            embedding_data = DeepFace.represent(face, model_name="Facenet", enforce_detection=False)
+            embeddings.append(torch.tensor(embedding_data[0]['embedding']))
+
+        embds = torch.stack(embeddings)  # shape: (n, d)
+        X_normalized = F.normalize(embds, p=2, dim=1)
+        # Compute similarity via matrix multiplication
+        cos_sim_matrix = torch.mm(X_normalized, X_normalized.t())
+        print(cos_sim_matrix.shape)
+        for i in range(cos_sim_matrix.shape[0]):
+            print(cos_sim_matrix[i])
 
 
 if __name__ == '__main__':
     try:
         node = EnhancedPlayerSearcher(-1.20, 1.20, 0.3)
         node.run_search_demo()
+        # node.run_face_reco_demo('.')
     except rospy.ROSInterruptException:
         pass
