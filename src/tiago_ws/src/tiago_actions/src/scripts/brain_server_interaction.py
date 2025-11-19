@@ -7,6 +7,8 @@ import wave
 from io import BytesIO
 from player_model import Player
 import time
+import rospy
+from std_msgs.msg import UInt8MultiArray
 
 # file with all setting of the server and interaction modes
 CONFIG_YAML = "config/brain_server.yaml"
@@ -96,7 +98,7 @@ class BrainInteractor:
                 #  - without printing anything
                 if auto_select and i != 0:
                     print("Device index: " + str(i))
-                    return i 
+                    # return i 
                 # else, print devices info to select by hand later
                 if not auto_select:
                     print(f"  Index {i}: {info['name']}")
@@ -107,7 +109,7 @@ class BrainInteractor:
 
 
 
-    def hear(self, duration:int = 5, device_index: Optional[int] = None):
+    def hear_old(self, duration:int = 5, device_index: Optional[int] = None):
         """Record audio and return it as bytes in WAV format"""
         
         # Recording parameters
@@ -122,7 +124,7 @@ class BrainInteractor:
 
         # select mic device if it was not provided
         if device_index == None:
-            device_index = self.find_mic_index(p, auto_select=True)
+            device_index = self.find_mic_index(p, auto_select=False)
 
         # set param
         device_info = p.get_device_info_by_index(device_index)
@@ -165,6 +167,25 @@ class BrainInteractor:
         # Get the WAV data as bytes
         wav_buffer.seek(0)
         return wav_buffer.read()
+
+    def hear(self, topic_name='/audio_bytes', timeout=30.0):
+        try:
+            rospy.loginfo(f"In attesa di audio dal topic {topic_name}...")
+            
+            # Attende UN SINGOLO messaggio (bloccante)
+            msg = rospy.wait_for_message(topic_name, UInt8MultiArray, timeout=timeout)
+            
+            if msg is None:
+                raise ValueError("Received NONE from mic")
+            # Converte da lista di int a bytes
+            audio_bytes = bytes(msg.data)
+            
+            rospy.loginfo(f"Ricevuto audio: {len(audio_bytes)} bytes")
+            return audio_bytes
+            
+        except rospy.ROSException as e:
+            rospy.logerr(f"Timeout o errore ROS: {e}")
+            raise
 
 
     def transcribe(self, audio_data, language=None):
@@ -268,4 +289,4 @@ if __name__ == "__main__":
     #test_new_player_with_ammonitions()
    
     interactor = BrainInteractor(CONFIG_YAML)
-    interactor.hear(device_index=6)
+    interactor.hear()

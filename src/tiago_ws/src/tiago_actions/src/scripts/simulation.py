@@ -15,7 +15,7 @@ from brain_server_interaction import *
 
 from player_model import Player
 from button_interaction_utils import * 
-
+import rospy
 
 
 def ask_player_name_and_class(interactor:BrainInteractor):
@@ -102,6 +102,7 @@ Il giocatore è: {player}
 
 class GameSession:
     def __init__(self, config_yaml):
+        rospy.init_node('audio_recorder_button', anonymous=True)
         self.interactor = BrainInteractor(config_yaml)
         self.player = None
         self.state = "WAITING_FOR_PLAYER"  # States: WAITING_FOR_PLAYER, PLAYING
@@ -111,6 +112,8 @@ class GameSession:
     def startup(self):
         """Initialize the game session"""
         print("Starting D&D Game Session...")
+        players = self.player_search_node.search_and_analyze_players()
+
         # TODO: search players and init tiago 
         
     def handle_audio(self, audio_bytes):

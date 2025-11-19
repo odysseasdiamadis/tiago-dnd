@@ -1,12 +1,12 @@
-import io, wave
-from typing import Optional
-import pyaudio
+#!/usr/bin/env python3
+
+import rospy
+from std_msgs.msg import UInt8MultiArray
 import tkinter as tk
-from tkinter import font as tkfont
-import time
-
-
-# from brain_server_interaction import BrainInteractor, CONFIG_YAML
+import pyaudio
+import wave
+import io
+from typing import Optional
 
 
 class AudioRecorder:
@@ -90,53 +90,39 @@ class AudioRecorder:
             self.stream.close()
         self.p.terminate()
 
-    def find_mic_index(self,  auto_select:bool=False) -> int:
-        """Tries to automatically find the correct microphone index for the device. 
-        Useful in the docker or even if you are not sure.
-        @param auto_select: if True, does not ask user to select mic and automatically selects the first non zero one.
-        NOTE: this is a modified version of the above unit tests one, with slight modifications to make it work in a class.
-        """
-        # List devices if device_index is not provided
+    def find_mic_index(self, auto_select:bool=False) -> int:
+        """Tries to automatically find the correct microphone index for the device."""
         print("Available audio input devices:")
         for i in range(self.p.get_device_count()):
             info = self.p.get_device_info_by_index(i)
             if info['maxInputChannels'] > 0:
-                # if auto_select mode is on, return the first non-zero device_index
-                #  - without printing anything
                 if auto_select and i != 0:
                     return i 
-                # else, print devices info to select by hand later
                 if not auto_select:
                     print(f"  Index {i}: {info['name']}")
 
-        # ask user to select by hand the device id
         device_index = int(input("Enter the device index for your digital mic: "))
         return device_index
-    
+
 
 def create_record_window(on_audio_ready=None):
     """Creates the UI to send a vocal message and interact with an llm for Tiago interactions.
     
         @param on_audio_ready:  Optional callback function that receives audio_bytes when recording stops.
-                                If None, no processing is done (just prints debug info).
     """
-    # GUI setup
     window = tk.Tk()
     window.title("Tieni premuto per parlare con Tiago.")
     window.geometry("800x640")
     window.wm_attributes("-topmost", True)
 
-    # Create recorder with window as master
     recorder = AudioRecorder(window)
     
-    # Flag to avoid multiple simultaneous processes (this stops the user to interact with button until processing is cvompleted)
     is_processing = False
 
     def on_press(event):
         """Starts the recording when button is pressed."""
-        # Block if still processing previous audio
         if is_processing:
-            print("[DEBUG] Still processing lasr audio, ignoring press")
+            print("[DEBUG] Still processing last audio, ignoring press")
             return
             
         try:
@@ -151,7 +137,6 @@ def create_record_window(on_audio_ready=None):
         """Stops the recording and passes audio bytes to callback."""
         nonlocal is_processing
         
-        # Don't process if not currently recording
         if not recorder.recording:
             return
             
@@ -159,17 +144,13 @@ def create_record_window(on_audio_ready=None):
             audio_bytes = recorder.stop_recording()
             button = event.widget
             
-            # Set processing flag to block new recordings
             is_processing = True
             
-            # Show processing state and disable button
-            button.config(bg="yellow", text="Elaborazione in corso, pulsante disattivato...", state="disabled")
-            window.update()  # Force UI to update
+            button.config(bg="yellow", text="Elaborazione in corso...", state="disabled")
+            window.update()
             
             print(f"[DEBUG] Recording stopped. Audio size: {len(audio_bytes)} bytes")
-            print("[DEBUG] Processing started - UI blocked")
             
-            # Process audio (blocking - UI will freeze until is done)
             try:
                 if on_audio_ready:
                     on_audio_ready(audio_bytes)
@@ -178,9 +159,8 @@ def create_record_window(on_audio_ready=None):
                 print(f"Error processing audio: {e}")
                 button.config(bg="red", text="Errore!!!")
                 window.update()
-                window.after(2000, lambda: None)  # Show an error for 2 seconds
+                window.after(2000, lambda: None)
             finally:
-                # Always reset state when done
                 is_processing = False
                 button.config(bg="lightgray", text="Tieni premuto\nper registrare", state="normal")
                 window.update()
@@ -190,7 +170,6 @@ def create_record_window(on_audio_ready=None):
             event.widget.config(bg="red", text="Errore!!!", state="normal")
             is_processing = False
 
-    # Set up recording button
     recording_button = tk.Button(window, 
                                  text="Tieni premuto\nper registrare", 
                                  font=("liberation sans", 12, "bold"),
@@ -200,11 +179,9 @@ def create_record_window(on_audio_ready=None):
                                  )
     recording_button.pack(expand=True)
       
-    # Bind mouse press and release
     recording_button.bind("<ButtonPress-1>", on_press)
     recording_button.bind("<ButtonRelease-1>", on_release)
 
-    # Ensure pyaudio is properly released when window closes
     def on_window_close():
         try:
             if recorder.recording:
@@ -225,16 +202,41 @@ def create_record_window(on_audio_ready=None):
     return window, recorder
 
 
-# Main execution
-if __name__ == "__main__":
+# ========== ROS INTEGRATION ==========
+
+def main():
+    # Inizializza nodo ROS
+    rospy.init_node('audio_recorder_gui', anonymous=False)
     
-    # TODO: custom handler (customize when using with Tiago)
+    # Crea publisher
+    audio_pub = rospy.Publisher('/audio_bytes', UInt8MultiArray, queue_size=10)
+    
+    rospy.loginfo("Audio Recorder Node started. Publisher on /audio_bytes")
+    
     def handle_audio(audio_bytes):
-        print(type(audio_bytes))
-        print(f"Got {len(audio_bytes)} bytes of audio!")    
-        # Simulate processing time (transcription, LLM, TTS, etc.)
-        time.sleep(3) # change, of course    
-        print("Process complete!")
+        """Callback che pubblica i bytes su ROS topic"""
+        print(f"[ROS] Publishing {len(audio_bytes)} bytes to /audio_bytes")
+        
+        msg = UInt8MultiArray()
+        msg.data = list(audio_bytes)
+        audio_pub.publish(msg)
+        
+        rospy.loginfo(f"Audio published successfully ({len(audio_bytes)} bytes)")
     
+    # Crea finestra GUI con callback ROS
     interaction_gui, recorder = create_record_window(on_audio_ready=handle_audio)
+    
+    rospy.loginfo("GUI window created. Press and hold button to record.")
+    
+    # Avvia GUI (mainloop è bloccante, ma va bene!)
     interaction_gui.mainloop()
+    
+    # Cleanup quando finestra viene chiusa
+    rospy.signal_shutdown("GUI closed")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except rospy.ROSInterruptException:
+        pass

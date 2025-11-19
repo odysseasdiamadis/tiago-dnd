@@ -152,7 +152,8 @@ class EnhancedPlayerSearcher:
                     
                     self.brain_interactor.say(f"Ciao avventuriero! Come ti chiami? E cosa vuoi giocare oggi?", language='it')
 
-                    name_and_class = self.brain_interactor.ask_player_name_and_class(device_idx=self.audio_device_idx)
+                    name_and_class = self.brain_interactor.ask_player_name_and_class()
+                    # name_and_class = self.brain_interactor.ask_player_name_and_class(device_idx=self.audio_device_idx)
                     name_and_class = json.loads(name_and_class)
                     rospy.loginfo(f"Name and class: {name_and_class}")
 
