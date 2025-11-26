@@ -153,6 +153,7 @@ class EnhancedPlayerSearcher:
                     self.brain_interactor.say(f"Ciao avventuriero! Come ti chiami? E cosa vuoi giocare oggi?", language='it')
 
                     name_and_class = self.brain_interactor.ask_player_name_and_class()
+                    print(name_and_class)
                     # name_and_class = self.brain_interactor.ask_player_name_and_class(device_idx=self.audio_device_idx)
                     name_and_class = json.loads(name_and_class)
                     rospy.loginfo(f"Name and class: {name_and_class}")
@@ -209,10 +210,10 @@ class EnhancedPlayerSearcher:
         
         # Search for players
         players = self.search_and_analyze_players()
-        # self.player_db.save_players(players)
+        self.player_db.save_players(players)
         
         # # # Print summary
-        # # rospy.loginfo(self.get_player_summary())
+        rospy.loginfo(self.get_player_summary())
         players_to_look = [p for p in self.players if p.is_present == True]
 
         if players_to_look:

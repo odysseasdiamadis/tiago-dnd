@@ -40,7 +40,7 @@ class Player:
             player_id=data['player_id'],
             is_present=data.get('is_present', False),
             discovered_time=data['discovered_time'],
-            klass=data['class'],
+            klass=data['klass'],
             name=data['name']
         )
         p.is_present = False

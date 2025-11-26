@@ -9,6 +9,8 @@ from player_model import Player
 import time
 import rospy
 from std_msgs.msg import UInt8MultiArray
+import unicodedata
+import re
 
 # file with all setting of the server and interaction modes
 CONFIG_YAML = "config/brain_server.yaml"
@@ -44,14 +46,17 @@ class BrainInteractor:
 
         response = requests.post(chat_url, json=data)
 
-        return response.json()["response"]
+        # remove special characters and emojis from prompt.
+        resp = response.json()["response"]
+        rospy.loginfo("LLM RESPONSE: " + resp)
+        return resp
 
 
     def say(self, text: str, language: str = "it", play_on_server: bool = False):
         tts_url = f"{self.brain_url}/tts"
-        
+        sanitized_text = self.sanitize_answer(text)
         data = {
-            "text": text,
+            "text": sanitized_text,
             "language": language,
             "play_on_server": play_on_server
         }
@@ -187,6 +192,31 @@ class BrainInteractor:
             rospy.logerr(f"Timeout o errore ROS: {e}")
             raise
 
+    def sanitize_answer(self, answer: str) -> str:
+            # 1. Remove emojis and pictographs
+            answer = "".join(
+                ch for ch in answer 
+                if not unicodedata.category(ch).startswith("So")  # Symbol, other
+                and not unicodedata.category(ch).startswith("Sk")  # Symbol, modifier
+                and not unicodedata.category(ch).startswith("Cs")  # Surrogates (emoji)
+            )
+            
+            # 2. Remove other “noisy” symbols
+            # Customize this list as needed
+            remove_chars = r"[*_~`^#@|<>\\{}\[\]/+=%$€£¥]"
+            answer = re.sub(remove_chars, "", answer)
+
+            # 3. Replace multiple punctuation marks with a single one
+            answer = re.sub(r"[!?]{2,}", lambda m: m.group(0)[0], answer)
+            answer = re.sub(r"[.]{2,}", ".", answer)
+
+            # 4. Remove stray standalone punctuation
+            # answer = re.sub(r"\s+[!?.,;:]\s+", " ", answer)
+
+            # 5. Normalize spaces
+            answer = re.sub(r"\s+", " ", answer).strip()
+
+            return answer
 
     def transcribe(self, audio_data, language=None):
         # Send directly to the STT endpoint
@@ -198,6 +228,10 @@ class BrainInteractor:
         response = requests.post(stt_url, files=files, data=data)
         return response.json()["text"]
 
+    def hear_str(self):
+        audio_data = self.hear()
+        return self.transcribe(audio_data)
+    
 
     def ask_player_name_and_class(self):
         data = self.hear()
