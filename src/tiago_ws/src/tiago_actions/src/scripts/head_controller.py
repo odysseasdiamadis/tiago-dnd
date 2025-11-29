@@ -7,9 +7,14 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from typing import Optional, Tuple
 from supervision import Detections
+from ultralytics import YOLO
+from PIL import Image as PILImage
+from player_model import Player, PlayerDatabase
 
 from detection import detect_face
-
+from detection import compare_embeddings, download_model, scale_bbox, detect_face
+from face_processor import FaceProcessor
+from sensor_msgs.msg import JointState
 
 class HeadController:
     """Controls TIAGo head movement for player detection and tracking."""
@@ -32,6 +37,16 @@ class HeadController:
         
         rospy.sleep(0.5)  # Wait for publisher to initialize
     
+        self.face_processor = FaceProcessor(
+            similarity_threshold=0.9, # threshold for cosine similarity
+            scale_factor=1,           # scale factor of the cropped face
+            border_margin=50,         # margin from the borders of the camera from which to consider faces
+        )
+        # Load YOLO model
+        model_path = download_model("arnabdhar/YOLOv8-Face-Detection", "model.pt")
+        self.model = YOLO(model_path)
+
+
     def move_head(self, yaw: float, pitch: float = 0.0, duration: float = None) -> None:
         """Move TIAGo head to specified yaw and pitch angles."""
         if duration is None:
@@ -81,13 +96,6 @@ class HeadController:
         return error <= self.center_tolerance
     
     def center_face_in_view(self, model, current_yaw: float, pitch: float = 0.0) -> Tuple[Optional[float], Optional[Tuple]]:
-        """
-        Implement control law to center a face in the camera view.
-        
-        Returns:
-            Tuple of (final_yaw, face_bbox) if face was successfully centered, 
-            (None, None) if no face found or centering failed
-        """
         rospy.loginfo(f"Starting face centering at yaw {current_yaw:.2f}")
         
         for attempt in range(self.max_centering_attempts):
@@ -133,16 +141,6 @@ class HeadController:
         return None, None
     
     def calculate_accurate_yaw_for_face(self, bbox: Tuple[float, float, float, float], current_yaw: float) -> float:
-        """
-        Calculate the exact yaw needed to center a face based on its position in the image.
-        
-        Args:
-            bbox: Face bounding box (x1, y1, x2, y2)
-            current_yaw: Current head yaw position
-            
-        Returns:
-            Calculated yaw to center the face
-        """
         # Calculate pixel error from image center
         error_pixels = self.get_face_center_error(bbox)
         
@@ -160,18 +158,7 @@ class HeadController:
         return target_yaw
 
     def scan_for_faces_with_accurate_positioning(self, model, start_yaw: float, end_yaw: float, scan_step: float = 0.2) -> list:
-        """
-        Scan horizontally for faces and return list of precise yaw angles to center each face.
-        
-        Args:
-            model: YOLO face detection model
-            start_yaw: Starting yaw angle in radians
-            end_yaw: Ending yaw angle in radians  
-            scan_step: Step size in radians between scan points
-            
-        Returns:
-            List of tuples (target_yaw, bbox) for each detected face
-        """
+
         face_data = []
         current_yaw = start_yaw
         
@@ -196,19 +183,71 @@ class HeadController:
         rospy.loginfo(f"Scan complete. Found {len(face_data)} faces with calculated positions")
         return face_data
 
+    def get_head_joints(self, timeout=1.0):
+        try:
+            # Questa funzione BLOCCA l'esecuzione finché non arriva un messaggio
+            msg = rospy.wait_for_message('/joint_states', JointState, timeout=timeout)
+            if not msg:
+                raise ValueError("Could not find joint states")
+            # I joint in 'msg.name' non hanno sempre lo stesso ordine, 
+            # quindi dobbiamo cercare l'indice corretto ogni volta.
+            if "head_1_joint" in msg.name and "head_2_joint" in msg.name:
+                idx_1 = msg.name.index("head_1_joint") # Yaw (Pan)
+                idx_2 = msg.name.index("head_2_joint") # Pitch (Tilt)
+                
+                current_yaw = msg.position[idx_1]
+                current_pitch = msg.position[idx_2]
+                
+                return current_yaw, current_pitch
+            else:
+                rospy.logwarn("I joint della testa non sono presenti nel messaggio /joint_states")
+                return None, None
+
+        except rospy.ROSException:
+            rospy.logerr("Timeout: Nessun messaggio ricevuto da /joint_states entro {:.1f}s".format(timeout))
+            return None, None
+        except ValueError:
+            rospy.logerr("Errore nel parsing dei joint.")
+            return None, None
+
+    def look_at_player(self, player: Player) -> bool:
+        if player is None:
+            rospy.logwarn(f"Player {player.player_id} not found")
+            return False
+        player_db = PlayerDatabase('players_database.json')
+        players = player_db.load_players()
+        rospy.loginfo(f"Looking at player {player.player_id}")
+        bbox_tolerance = 50
+        self.move_head(player.yaw, 0.0)
+        image, detections = self.detect_faces_in_current_view(self.model)
+        pil_image = PILImage.fromarray(image)
+        # Find the player among all detections
+        for detection in detections.xyxy:
+            emb = self.face_processor.extract_face_embedding(pil_image, detection)
+            if emb is None:
+                rospy.loginfo("Player not found!")
+                return False
+            p_id = self.face_processor.find_matching_player(emb, players)
+            if p_id == player.player_id:
+                # Found! We check for bounding box
+                x1, y1, x2, y2 = detection
+                if x1 < bbox_tolerance or x2 > 640 - bbox_tolerance:
+                    return True
+                current_yaw, _ = self.get_head_joints()
+                assert current_yaw is not None
+                right_yaw = self.calculate_accurate_yaw_for_face(detection, current_yaw)
+                player.yaw = right_yaw
+
+                self.move_head(right_yaw)
+                return True
+            else:
+                return False
+
+        return False
+
+
     def scan_for_faces(self, model, start_yaw: float, end_yaw: float, scan_step: float = 0.2) -> list:
-        """
-        Scan horizontally for faces and return list of yaw angles where faces were detected.
-        
-        Args:
-            model: YOLO face detection model
-            start_yaw: Starting yaw angle in radians
-            end_yaw: Ending yaw angle in radians  
-            scan_step: Step size in radians between scan points
-            
-        Returns:
-            List of yaw angles where faces were detected
-        """
+
         face_yaws = []
         current_yaw = start_yaw
         
