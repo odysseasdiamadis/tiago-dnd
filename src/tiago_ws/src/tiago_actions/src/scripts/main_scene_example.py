@@ -23,6 +23,7 @@ from hand_controller import HandController
 from arm_controller import ArmController
 from face_processor import FaceProcessor
 from brain_server_interaction import BrainInteractor, CONFIG_YAML
+from typing import Optional
 
 class MainSceneController:
     """
@@ -33,28 +34,20 @@ class MainSceneController:
     4. Sequential left-to-right player discovery
     """
     
-    def __init__(self, scan_start: float = -1.0, scan_end: float = 1.0, 
-                 scan_step: float = 0.3, players_file: str = 'players_database.json', audio_device_idx=0):
+    def __init__(self, prompt: str, first_round_prompt: Optional[str] = None, players_file: str = 'players_database.json', rounds = 3):
         rospy.init_node('enhanced_player_searcher', anonymous=True)
-        
-        self.audio_device_idx = audio_device_idx
         # Initialize components
         self.head_controller = HeadController()
         self.player_db = PlayerDatabase(players_file)
         self.arm_controller = ArmController()
         self.hand_controller = HandController()
         self.brain_interactor = BrainInteractor(CONFIG_YAML)
-        
-        self.bbox_tolerance = 50
-        # Load existing players
+        self.prompt = prompt
+        self.first_round_prompt = first_round_prompt
         self.players = self.player_db.load_players()
-        rospy.loginfo(f"Loaded {len(self.players)} players from database")
-        
-        # Scanning parameters
-        self.scan_start = scan_start
-        self.scan_end = scan_end
-        self.scan_step = scan_step
-        
+        self.rounds = rounds
+
+        rospy.loginfo(f"Loaded {len(self.players)} players from database")        
         rospy.loginfo("Enhanced Player Searcher initialized")
 
 
@@ -67,6 +60,7 @@ class MainSceneController:
     1. TU SEI L'ARBITRO: Descrivi l'ambiente, gli NPC e le conseguenze delle azioni.
     2. NON GIOCARE PER I GIOCATORI: Non scrivere mai cosa dicono o fanno Marco e Fabiano. Fermati e chiedi loro cosa fanno.
     3. COERENZA: Le tue risposte devono essere logicamente conseguenti all'ultima azione nella <history>.
+    4. TIPO DI RISPOSTA: Coinvolgi i giocatori, ma non chiedere direttamente cosa vogliono fare.
 
     # I GIOCATORI:
     - {players[0].name} di classe {self.players[0].klass}
@@ -99,12 +93,10 @@ class MainSceneController:
     # UN ESEMPIO COME RIFERIMENTO
     I giocatori sono Filippo e Matteo. È il turno di Matteo.
     <history>
-    Tiago: Filippo, cosa vuoi fare?
     Filippo: Credo sia meglio andare a destra
-    Tiago: Matteo, cosa vuoi fare?
     Matteo: Sono d'accordo, andiamo a destra
     </history>
-    Vi ritrovate davanti ad una statua particolare.
+    Output: Vi ritrovate davanti ad una statua particolare.
     </example>
     '''
             return prompt
@@ -117,52 +109,59 @@ class MainSceneController:
         self.brain_interactor.say(msg)
     
     def perform_round(self, context, history, players, round_num):
-        if round_num == 0:
-            round_question = "Vi trovate all'interno di una taverna. Uno straniero con i vestiti tipici di Mordor si avvicina a voi."
+        if self.first_round_prompt is not None and round_num == 0:
+            round_question = self.first_round_prompt
         else:
             round_question = self.brain_interactor.ask_llm(self.get_prompt(context, players, players[0], history))
 
         self.brain_interactor.say(round_question)
+        found_player = self.head_controller.look_at_player(players[0], assert_player_is_here=True)
+        if not found_player:
+            self.player_not_found(players[0])
+            raise Exception("player not found")   
+        self.brain_interactor.say(f"{players[0].name}, cosa vuoi fare?")
+        p1_ans = self.brain_interactor.hear_str()
 
-        for i, player in enumerate(players):
-            found_player = self.head_controller.look_at_player(player)
-            if not found_player:
-                self.player_not_found(player)
-                raise Exception(f"Player {player.name} not found!")
-            self.arm_controller.point_at_player(player)
-            tiago_q = f"{player.name}, cosa vuoi fare?"
-            self.brain_interactor.say(tiago_q)
-            p1_ans = self.brain_interactor.hear_str()
-            history.append(tiago_q)
-            history.append(p1_ans)
+        found_player = self.head_controller.look_at_player(players[1], assert_player_is_here=True)
+        if not found_player:
+            self.player_not_found(players[1])
+            raise Exception("player not found")     
+        self.brain_interactor.say(f"{players[1].name}, cosa vuoi fare?")
+        p2_ans = self.brain_interactor.hear_str()
+        # history.append(f"Tiago: {players[0].name}, cosa vuoi fare?")
+        history.append(f"{players[0].name}: {p1_ans}")
+        # history.append(f"Tiago: {players[1].name}, cosa vuoi fare?")
+        history.append(f"{players[1].name}: {p2_ans}")
+
 
     
     def run_scene(self):
-        self.context_prompt = '''
-        Vi trovate all'interno di una taverna.
-        Uno straniero nella taverna proveniente da Mordor si avvicina al tavolo per chiedere se siamo dei cercatori d'oro. Vuole reclutarci per una
-        missione molto pericolosa per sconfiggere il capo degli orchi. Sta cercando delle persone valorose ed è disposto a pagarle bene e ad indicare la strada.
-        '''
-
         self.players = self.player_db.load_players()
-        history = [f"Tiago: {self.context_prompt}"]
+        history = [f"Tiago: {self.prompt}"]
 
-        for i in range(5):
-            self.perform_round(self.context_prompt, history, self.players, i)
+        for i in range(self.rounds):
+            self.perform_round(self.prompt, history, self.players, i)
 
 
 
 if __name__ == '__main__':
     try:
-        node = MainSceneController(-1.20, 1.20, 0.3)
+        # node = MainSceneController(
+        #     prompt='''
+        # Vi trovate all'interno di una taverna.
+        # Uno straniero nella taverna proveniente da Mordor si avvicina al tavolo per chiedere se siamo dei cercatori d'oro. Vuole reclutarci per una
+        # missione molto pericolosa per sconfiggere il capo degli orchi. Sta cercando delle persone valorose ed è disposto a pagarle bene e ad indicare la strada.
+        # ''',
+        # first_round_prompt= "Vi trovate all'interno di una taverna. Uno straniero con i vestiti tipici di Mordor si avvicina a voi."
+        # )
+
+        node = MainSceneController(
+            prompt='''
+Vi trovate all'interno alle porte di un antico tempio che è un vero e proprio dungeon con trappole, tesori e varie strade. All'interno è contenuto il tesoro di un vecchio re, che voi siete andati a recuperare. L'ingresso è un grande portone che si apre su una stanza con tante statue e due diverse ramificazioni che portano all'interno del tempio.
+            ''',
+            first_round_prompt=None
+        )
         node.run_scene()
-        # players = node.player_db.load_players()
-        # can_find_player = node.head_controller.look_at_player(players[0])
-        # if not can_find_player:
-        #     node.brain_interactor.say(f"Ei {players[0].name}, dove sei?")
-        # can_find_player = node.head_controller.look_at_player(players[1])
-        # if not can_find_player:
-        #     node.brain_interactor.say(f"Ei {players[1].name}, dove sei?")
 
     except rospy.ROSInterruptException:
         pass

@@ -210,7 +210,7 @@ class HeadController:
             rospy.logerr("Errore nel parsing dei joint.")
             return None, None
 
-    def look_at_player(self, player: Player) -> bool:
+    def look_at_player(self, player: Player, assert_player_is_here=False) -> bool:
         if player is None:
             rospy.logwarn(f"Player {player.player_id} not found")
             return False
@@ -219,6 +219,8 @@ class HeadController:
         rospy.loginfo(f"Looking at player {player.player_id}")
         bbox_tolerance = 50
         self.move_head(player.yaw, 0.0)
+        if not assert_player_is_here:
+            return True
         image, detections = self.detect_faces_in_current_view(self.model)
         pil_image = PILImage.fromarray(image)
         # Find the player among all detections
