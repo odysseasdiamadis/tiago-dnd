@@ -24,6 +24,9 @@ from arm_controller import ArmController
 from face_processor import FaceProcessor
 from brain_server_interaction import BrainInteractor, CONFIG_YAML
 
+
+SESSION_DATA_FOLDER = "data/session_data/"
+
 class MainSceneController:
     """
     Enhanced player search system that implements:
@@ -44,6 +47,7 @@ class MainSceneController:
         self.arm_controller = ArmController()
         self.hand_controller = HandController()
         self.brain_interactor = BrainInteractor(CONFIG_YAML)
+        self.session_data_folder = SESSION_DATA_FOLDER
         
         self.bbox_tolerance = 50
         # Load existing players
@@ -136,6 +140,30 @@ class MainSceneController:
             history.append(tiago_q)
             history.append(p1_ans)
 
+        return history
+
+    
+    def save_game_history(self, history, filename: str = "history"):
+        """Saves content of <history> tags into a timestamped JSON file"""
+        import os
+        from datetime import datetime
+
+        # Ensure session folder exists
+        os.makedirs(self.session_data_folder, exist_ok=True)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        outfile = os.path.join(
+            self.session_data_folder,
+            f"{filename}_{timestamp}.json"
+        )
+
+        with open(outfile, "w", encoding="utf-8") as f:
+            json.dump(history, f, indent=2, ensure_ascii=False)
+
+        rospy.loginfo(f"Game history saved to {outfile}")
+
+        
+
     
     def run_scene(self):
         self.context_prompt = '''
@@ -148,7 +176,11 @@ class MainSceneController:
         history = [f"Tiago: {self.context_prompt}"]
 
         for i in range(5):
-            self.perform_round(self.context_prompt, history, self.players, i)
+            # This gets and updated history at each cicle
+            history = self.perform_round(self.context_prompt, history, self.players, i)
+
+        self.save_game_history(history)
+
 
 
 
