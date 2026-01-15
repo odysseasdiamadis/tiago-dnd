@@ -48,16 +48,10 @@ class ArmController:
         rospy.loginfo("Arm Controller initialized with MoveIt")
         rospy.loginfo(f"End effector: {self.end_effector_link}")
         rospy.loginfo(f"Reference frame: {self.reference_frame}")
+        self.set_natural_pointing_constraints(True)
+
     
     def set_elbow_down_constraint(self, enable: bool = True, max_elbow_angle: float = 0.0):
-        """
-        Enable/disable constraint to keep elbow pointing downward.
-        
-        Args:
-            enable: Whether to enable the elbow constraint
-            max_elbow_angle: Maximum angle for elbow joint (radians). 
-                           0.0 = straight down, negative values bend elbow more
-        """
         self.use_elbow_constraint = enable
         
         if enable:
@@ -110,12 +104,6 @@ class ArmController:
             rospy.loginfo("Shoulder constraint disabled")
     
     def set_natural_pointing_constraints(self, enable: bool = True):
-        """
-        Enable/disable natural human-like pointing constraints (shoulder down + elbow control).
-        
-        Args:
-            enable: Whether to enable natural pointing constraints
-        """
         if enable:
             self.set_shoulder_down_constraint(True, max_shoulder_angle=0.3)  # Shoulder slightly down
             self.set_elbow_down_constraint(True, max_elbow_angle=-0.1)       # Elbow slightly bent down
