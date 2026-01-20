@@ -114,7 +114,7 @@ class Brain:
             # Read the audio bytes
             audio_bytes = audio_file.read()
 
-            # Save to a temporary path (whisper needs a file path)
+            #Save to a temporary path (whisper needs a file path)
             temp_path = "temp_audio.wav"
             with open(temp_path, "wb") as f:
                 f.write(audio_bytes)
@@ -129,7 +129,7 @@ class Brain:
             else:
                 result = self.speech_2_text_model.transcribe(audio)
 
-            # Delete temp file
+            #Deletes temp file
             os.remove(temp_path)
 
             return jsonify({

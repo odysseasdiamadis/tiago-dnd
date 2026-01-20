@@ -17,7 +17,7 @@ CONFIG_YAML = "config/brain_server.yaml"
 
 
 class BrainInteractor:
-    #config:dict     # TODO: define also structure
+    #config:dict     # TODO: define also structure ?
     brain_url:str
 
     def __init__(self, yaml_config_path):
@@ -99,8 +99,7 @@ class BrainInteractor:
         for i in range(p.get_device_count()):
             info = p.get_device_info_by_index(i)
             if info['maxInputChannels'] > 0:
-                # if auto_select mode is on, return the first non-zero device_index
-                #  - without printing anything
+                # if auto_select mode is on, return the first non-zero device_index without printing anything
                 if auto_select and i != 0:
                     print("Device index: " + str(i))
                     # return i 
@@ -137,7 +136,6 @@ class BrainInteractor:
         CHANNELS = min(CHANNELS, max_channels)  # auto-correct request
         
         
-    
         # Open stream
         stream = p.open(format=FORMAT,
                         channels=CHANNELS,
@@ -177,12 +175,12 @@ class BrainInteractor:
         try:
             rospy.loginfo(f"In attesa di audio dal topic {topic_name}...")
             
-            # Attende UN SINGOLO messaggio (bloccante)
+            # Waits for A SINGLE messagge (bloccante)
             msg = rospy.wait_for_message(topic_name, UInt8MultiArray, timeout=timeout)
             
             if msg is None:
                 raise ValueError("Received NONE from mic")
-            # Converte da lista di int a bytes
+            # Convert from list of int to bytes
             audio_bytes = bytes(msg.data)
             
             rospy.loginfo(f"Ricevuto audio: {len(audio_bytes)} bytes")
@@ -193,7 +191,7 @@ class BrainInteractor:
             raise
 
     def sanitize_answer(self, answer: str) -> str:
-            # 1. Remove emojis and pictographs
+            # Remove emojis and simbols
             answer = "".join(
                 ch for ch in answer 
                 if not unicodedata.category(ch).startswith("So")  # Symbol, other
@@ -201,19 +199,18 @@ class BrainInteractor:
                 and not unicodedata.category(ch).startswith("Cs")  # Surrogates (emoji)
             )
             
-            # 2. Remove other “noisy” symbols
-            # Customize this list as needed
-            remove_chars = r"[*_~`^#@|<>\\{}\[\]/+=%$€£¥]"
+            # remove other “noisy” symbols
+            remove_chars = r"[*_~`^#@|<>\\{}\[\]/+=%$€£¥]"  # TODO: expand this list
             answer = re.sub(remove_chars, "", answer)
 
-            # 3. Replace multiple punctuation marks with a single one
+            # Replace multiple punctuation marks with a single one
             answer = re.sub(r"[!?]{2,}", lambda m: m.group(0)[0], answer)
             answer = re.sub(r"[.]{2,}", ".", answer)
 
-            # 4. Remove stray standalone punctuation
+            # Remove stray standalone punctuation
             # answer = re.sub(r"\s+[!?.,;:]\s+", " ", answer)
 
-            # 5. Normalize spaces
+            # Normalize spaces
             answer = re.sub(r"\s+", " ", answer).strip()
 
             return answer

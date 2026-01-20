@@ -175,7 +175,7 @@ class MainSceneController:
 
 
 
-
+# NOTE: set a starting prompt to boot up the session. Fopr example, describe thee scene and the setting of what you would like to play and let tiago do the rest!!
 if __name__ == '__main__':
     try:
         # node = MainSceneController(

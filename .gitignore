@@ -1,7 +1,7 @@
 # folders with temp files
 audio_output/
-src/test-scripts/temp/
-src/test-scripts/out_folder/
+src/test-brain_test_scripts/temp/
+src/test-brain_test_scripts/out_folder/
 
 # config dir + exceptions
 src/config/*

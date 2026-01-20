@@ -82,14 +82,14 @@ def process_image(image_path: str, model, output_folder: str, database: list) ->
         embeddings.append(embedding)
         output_paths.append(output_face_path)
 
-        # Check if the face is already known
+        # Check if the face is already known:
         if is_face_known(embedding, database):
             print(f"Face {i+1} in {image_path} is already in the database!")
         else:
             print(f"Face {i+1} in {image_path} is a new face. Adding to the database.")
             database.append(embedding)  # Add to the database
 
-    # Optionally, compare embeddings within the current image
+    # compare embeddings within the current image
     if len(embeddings) > 1:
         for i in range(len(embeddings) - 1):
             for j in range(i + 1, len(embeddings)):

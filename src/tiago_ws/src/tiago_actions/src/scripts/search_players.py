@@ -27,7 +27,7 @@ from brain_server_interaction import BrainInteractor, CONFIG_YAML
 
 class EnhancedPlayerSearcher:
     """
-    Enhanced player search system that implements:
+    Enhanced player search system that implements :
     1. Horizontal head scanning with face centering control
     2. Embedding computation only when faces are properly centered
     3. JSON persistence for player database
@@ -73,8 +73,7 @@ class EnhancedPlayerSearcher:
         Implements complete scanning logic with face detection, embedding comparison,
         and centering of unknown players.
         
-        Returns:
-            List of all known players (existing + newly discovered)
+        Returns a List of all known players (existing + newly discovered)
         """
         rospy.loginfo("Starting enhanced player search...")
         
@@ -95,7 +94,7 @@ class EnhancedPlayerSearcher:
             if len(detections.xyxy) > 0:
                 rospy.loginfo(f"Found {len(detections.xyxy)} faces at yaw {current_yaw:.2f}")
                 
-                # 1) Order detections by rightmost bounding box border (x2 coordinate)
+                # Order detections by rightmost bounding box border (x2 coordinate)
                 face_data = []
                 for bbox in detections.xyxy:
                     x1, y1, x2, y2 = bbox
@@ -103,10 +102,10 @@ class EnhancedPlayerSearcher:
                         continue
                     face_data.append((x2, bbox))  # (rightmost_x, bbox)
                 
-                # Sort by rightmost x coordinate (left to right order)
+                # sort by rightmost x coordinate (left to right order)
                 face_data.sort(key=lambda x: x[0])
                 
-                # 2) Compute face embeddings for all detected faces
+                # Compute face embeddings for all detected faces
                 pil_image = PILImage.fromarray(image)
                 face_embeddings = []
                 
@@ -117,7 +116,7 @@ class EnhancedPlayerSearcher:
                     else:
                         rospy.logwarn(f"Failed to extract embedding for face at {bbox}")
                 
-                # 3) Compare embeddings with known players and identify unknown faces
+                # Compare embeddings with known players and identify unknown faces
                 unknown_faces = []
                 for rightmost_x, bbox, embedding in face_embeddings:
                     matching_player_id = self.face_processor.find_matching_player(embedding, self.players)
@@ -129,11 +128,11 @@ class EnhancedPlayerSearcher:
                         unknown_faces.append((rightmost_x, bbox, embedding))
                         rospy.loginfo(f"Found unknown face at bbox {bbox}")
                 
-                # 4-7) Process unknown players one by one
+                # Process unknown players one by one
                 for rightmost_x, bbox, embedding in unknown_faces:
                     rospy.loginfo(f"Processing unknown player with bbox {bbox}")
                     
-                    # 5) Look at the unknown player by centering its bounding box
+                    # Look at the unknown player by centering its bounding box
                     target_yaw = self.head_controller.calculate_accurate_yaw_for_face(bbox, current_yaw)
                     
                     # Center the face using control law
@@ -145,7 +144,7 @@ class EnhancedPlayerSearcher:
                         rospy.logwarn(f"Failed to center unknown face, skipping...")
                         continue
                     
-                    # 6) Save the player with the current centered yaw
+                    # Save the player with the current centered yaw
                     # self.players = self.player_db.load_players()
                     new_players_count += 1
                     rospy.loginfo(f"\n🎲 New player found! 🎲\n")
@@ -171,10 +170,10 @@ class EnhancedPlayerSearcher:
                     # Small delay between players
                     # rospy.sleep(0.5)
                 
-                # 8) All faces are now known, continue scanning
+                # All faces are now known, continues scanning
                 rospy.loginfo(f"All faces at yaw {current_yaw:.2f} are now known players")
             
-            # Move to next scan position
+            #Move to next scan position
             current_yaw += self.scan_step
         
         rospy.loginfo(f"Player search complete. Found {new_players_count} new players. "

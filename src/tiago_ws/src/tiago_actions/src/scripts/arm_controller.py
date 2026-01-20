@@ -77,10 +77,9 @@ class ArmController:
         """
         Enable/disable constraint to keep shoulder pointing downward for natural pointing.
         
-        Args:
-            enable: Whether to enable the shoulder constraint
-            max_shoulder_angle: Maximum angle for shoulder joint (radians).
-                              Positive values allow shoulder to go up, 0.0 = level, negative = down
+        enable: Whether to enable the shoulder constraint
+        max_shoulder_angle: Maximum angle for shoulder joint (radians).
+                        Positive values allow shoulder to go up, 0.0 = level, negative = down
         """
         self.use_shoulder_constraint = enable
         
@@ -91,7 +90,7 @@ class ArmController:
             shoulder_constraint.position = max_shoulder_angle
             shoulder_constraint.tolerance_above = 0.3  # Allow some flexibility above
             shoulder_constraint.tolerance_below = 1.57  # Allow full range below (down)
-            shoulder_constraint.weight = 0.8  # Slightly lower weight than elbow
+            shoulder_constraint.weight = 0.8  # slightly lower weight than elbow
             
             # Create constraints message
             self.shoulder_down_constraint = Constraints()
@@ -106,7 +105,7 @@ class ArmController:
     def set_natural_pointing_constraints(self, enable: bool = True):
         if enable:
             self.set_shoulder_down_constraint(True, max_shoulder_angle=0.3)  # Shoulder slightly down
-            self.set_elbow_down_constraint(True, max_elbow_angle=-0.1)       # Elbow slightly bent down
+            self.set_elbow_down_constraint(True, max_elbow_angle=-0.1)       # Eebow slightly bent down
             rospy.loginfo("Natural pointing constraints enabled")
         else:
             self.set_shoulder_down_constraint(False)
@@ -127,14 +126,12 @@ class ArmController:
         """
         Move wrist to specified pose (position + orientation).
         
-        Args:
-            position: (x, y, z) position in meters relative to base_footprint
-            orientation: (x, y, z, w) quaternion OR None if using rpy
-            rpy: (roll, pitch, yaw) in radians OR None if using quaternion
-            keep_elbow_down: Force elbow down for this movement (overrides global setting)
+        position: (x, y, z) position in meters relative to base_footprint
+        orientation: (x, y, z, w) quaternion OR None if using rpy
+        rpy: (roll, pitch, yaw) in radians OR None if using quaternion
+        keep_elbow_down: Force elbow down for this movement (overrides global setting)
             
-        Returns:
-            True if successful, False otherwise
+        Returns True if successful, False otherwise
         """
         # Create target pose
         target_pose = PoseStamped()
@@ -154,7 +151,7 @@ class ArmController:
             # Default orientation (pointing forward)
             target_pose.pose.orientation = Quaternion(0, 0, 0, 1)
         
-        # Apply constraints if needed
+        # apply constraints if needed
         use_elbow = keep_elbow_down if keep_elbow_down is not None else self.use_elbow_constraint
         
         # Combine constraints
@@ -188,7 +185,7 @@ class ArmController:
             self.arm_group.stop()
             self.arm_group.clear_pose_targets()
             
-            # Clear constraints after movement
+            # clears constraints after movement
             if has_constraints:
                 self.arm_group.clear_path_constraints()
             
@@ -200,7 +197,7 @@ class ArmController:
                 return False
         else:
             rospy.logwarn("Failed to find valid plan")
-            # Clear constraints if planning failed
+            # Cleear constraints if planning failed
             if has_constraints:
                 self.arm_group.clear_path_constraints()
             return False
@@ -210,12 +207,10 @@ class ArmController:
         """
         Point the arm toward a target position.
         
-        Args:
-            target_position: (x, y, z) position to point at
-            wrist_distance: Distance from target to place wrist (meters)
+        target_position: (x, y, z) position to point at
+        wrist_distance: Distance from target to place wrist (meters)
             
-        Returns:
-            True if successful, False otherwise
+        Returns True if successful, False otherwise
         """
         x_target, y_target, z_target = target_position
         
@@ -228,7 +223,7 @@ class ArmController:
         wrist_y = y_target - wrist_distance * pointing_vector[1]
         wrist_z = z_target - wrist_distance * pointing_vector[2]
         
-        # Calculate orientation to point toward target
+        # Calculates orientation to point toward target
         yaw = np.arctan2(pointing_vector[1], pointing_vector[0])
         pitch = -np.arcsin(pointing_vector[2])
         roll = 0.0  # Keep roll neutral
@@ -262,7 +257,7 @@ class ArmController:
             [0,        0,       1]
         ])
         
-        # Base direction vector [1, 0, 0] (pointing forward)
+        # Base direction vector [1, 0, 0] (this is pointing forward)
         base_vector = np.array([1, 0, -1.5])
         
         # Apply rotation to get the pointing direction
@@ -273,8 +268,8 @@ class ArmController:
         arm_y = arm_distance * pointing_direction[1]
         arm_z = arm_height
         
-        # Set arm orientation to match the yaw (pointing towards player)
-        # Roll and pitch are kept neutral, only yaw follows the player direction
+        # Set arm orientation to match the yaw (pointing towards player) +
+        # roll and pitch are kept neutral, only yaw follows the player direction
         roll = 0.0
         pitch = 0.0  # Keep arm level
         arm_yaw = yaw  # Point in the same direction as the player
@@ -290,25 +285,23 @@ class ArmController:
         """
         Move relative to current position.
         
-        Args:
-            delta_position: (dx, dy, dz) relative movement in meters
-            delta_rpy: (d_roll, d_pitch, d_yaw) relative rotation in radians
+        delta_position: (dx, dy, dz) relative movement in meters
+        delta_rpy: (d_roll, d_pitch, d_yaw) relative rotation in radians
             
-        Returns:
-            True if successful, False otherwise
+        Returns True if successful, False otherwise
         """
         current_pose = self.get_current_pose()
         if current_pose is None:
             return False
         
-        # Calculate new position
+        # Calculate the new position
         new_pos = (
             current_pose.position.x + delta_position[0],
             current_pose.position.y + delta_position[1],
             current_pose.position.z + delta_position[2]
         )
         
-        # Calculate new orientation
+        # Calculate the new orientation
         current_quat = [
             current_pose.orientation.x, current_pose.orientation.y,
             current_pose.orientation.z, current_pose.orientation.w
@@ -370,11 +363,9 @@ class ArmController:
         """
         Move to a predefined pose.
         
-        Args:
-            preset_name: Name of the preset pose
+        preset_name: Name of the preset pose
             
-        Returns:
-            True if successful, False otherwise
+        ReturnsTrue if successful, False otherwise
         """
         presets = self.get_predefined_poses()
         
@@ -498,7 +489,7 @@ def test_elbow_constraint():
     controller.point_at_player(test_player)
     rospy.sleep(3)
     
-    # Test with elbow constraint
+    # test with elbow constraint
     rospy.loginfo("=== Testing WITH elbow constraint ===")
     controller.set_elbow_down_constraint(True, max_elbow_angle=-0.2)  # Slight bend downward
     controller.point_at_player(test_player)
@@ -570,7 +561,9 @@ def test_natural_pointing():
 
 
 def demo_custom_poses():
-    """Demo custom pose control."""
+    """
+    Demo custom pose control.
+    """
     rospy.init_node('arm_custom_demo', anonymous=True)
     controller = ArmController()
     

@@ -205,16 +205,16 @@ def create_record_window(on_audio_ready=None):
 # ========== ROS INTEGRATION ==========
 
 def main():
-    # Inizializza nodo ROS
+    # Init  ROS node
     rospy.init_node('audio_recorder_gui', anonymous=False)
     
-    # Crea publisher
+    # Create publisher
     audio_pub = rospy.Publisher('/audio_bytes', UInt8MultiArray, queue_size=10)
     
     rospy.loginfo("Audio Recorder Node started. Publisher on /audio_bytes")
     
     def handle_audio(audio_bytes):
-        """Callback che pubblica i bytes su ROS topic"""
+        """Callback that publishes  bytes on ROS topic"""
         print(f"[ROS] Publishing {len(audio_bytes)} bytes to /audio_bytes")
         
         msg = UInt8MultiArray()
@@ -223,15 +223,15 @@ def main():
         
         rospy.loginfo(f"Audio published successfully ({len(audio_bytes)} bytes)")
     
-    # Crea finestra GUI con callback ROS
+    # creatre GUI window with callback ROS
     interaction_gui, recorder = create_record_window(on_audio_ready=handle_audio)
     
     rospy.loginfo("GUI window created. Press and hold button to record.")
     
-    # Avvia GUI (mainloop è bloccante, ma va bene!)
+    # Boot up GUI (NOTE: mainloop is bloocking!!)
     interaction_gui.mainloop()
     
-    # Cleanup quando finestra viene chiusa
+    # Cleanup on window closing
     rospy.signal_shutdown("GUI closed")
 
 

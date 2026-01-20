@@ -101,8 +101,7 @@ class AudioRecorder:
         for i in range(self.p.get_device_count()):
             info = self.p.get_device_info_by_index(i)
             if info['maxInputChannels'] > 0:
-                # if auto_select mode is on, return the first non-zero device_index
-                #  - without printing anything
+                # if auto_select mode is on, return the first non-zero device_index without printing anything
                 if auto_select and i != 0:
                     return i 
                 # else, print devices info to select by hand later
@@ -169,7 +168,7 @@ def create_record_window(on_audio_ready=None):
             print(f"[DEBUG] Recording stopped. Audio size: {len(audio_bytes)} bytes")
             print("[DEBUG] Processing started - UI blocked")
             
-            # Process audio (blocking - UI will freeze until is done)
+            # Process audio (NOTE: is blocking so UI will freeze until is done)
             try:
                 if on_audio_ready:
                     on_audio_ready(audio_bytes)

@@ -3,7 +3,6 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from abc import ABC, abstractmethod
 
 class LLM(ABC):
-
     """Parent class for all LLM models"""
     
     def __init__(self, config):
@@ -240,7 +239,7 @@ class Mistral(LLM):
         # Clean up the response
         generated = generated.strip()
         
-        # Remove any potential ChatML end tokens
+        #Remove any potential ChatML end tokens
         if "<|im_end|>" in generated:
             generated = generated.split("<|im_end|>")[0].strip()
 

@@ -62,7 +62,7 @@ class HeadController:
         rospy.sleep(duration + 0.1)  # Wait for movement to complete
     
     def capture_image(self, timeout: float = 3.0) -> Optional[np.ndarray]:
-        """Capture an image from the camera."""
+        """Captures image from the camera."""
         try:
             ros_img = rospy.wait_for_message(self.image_topic, Image, timeout=timeout)
             cv_img = self.bridge.imgmsg_to_cv2(ros_img, desired_encoding='bgr8')
@@ -85,7 +85,7 @@ class HeadController:
         return image, detections
     
     def get_face_center_error(self, bbox: Tuple[float, float, float, float]) -> float:
-        """Calculate horizontal distance from face center to image center."""
+        """calculate horizontal distance from face center to image center."""
         x1, y1, x2, y2 = bbox
         face_center_x = (x1 + x2) / 2
         return face_center_x - self.image_center_x
@@ -119,7 +119,7 @@ class HeadController:
                 rospy.loginfo(f"Face centered successfully at yaw {current_yaw:.2f}")
                 return current_yaw, tuple(bbox)
             
-            # Calculate correction needed
+            # calculate correction needed
             error = self.get_face_center_error(bbox)
             
             # Simple proportional control
@@ -131,7 +131,7 @@ class HeadController:
             
             rospy.loginfo(f"Attempt {attempt + 1}: Face center error = {error:.1f}px, adjusting yaw by {yaw_correction:.3f} rad")
             
-            # Move head to new position
+            # Move head to a new position
             self.move_head(new_yaw, pitch, duration=0.2)
             current_yaw = new_yaw
             
@@ -145,7 +145,7 @@ class HeadController:
         error_pixels = self.get_face_center_error(bbox)
         
         # Convert pixel error to angular error
-        # Assuming camera field of view is approximately 60 degrees (1.047 radians)
+        # NOTE: Assuming camera field of view is approximately 60 degrees (1.047 radians)
         camera_fov_radians = 1.047
         angular_error = (error_pixels / self.image_width) * camera_fov_radians
         
@@ -231,7 +231,7 @@ class HeadController:
                 return False
             p_id = self.face_processor.find_matching_player(emb, players)
             if p_id == player.player_id:
-                # Found! We check for bounding box
+                # Found it, so We check for bounding box
                 x1, y1, x2, y2 = detection
                 if x1 < bbox_tolerance or x2 > 640 - bbox_tolerance:
                     return True

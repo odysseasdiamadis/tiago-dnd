@@ -17,7 +17,7 @@ class HandController:
             FollowJointTrajectoryAction
         )
         
-        # TIAGo hand joint names (3 joints)
+        # TIAGo hand joint names (NOTE:  in total there are3 joints)
         self.joint_names = [
             'hand_thumb_joint',
             'hand_index_joint', 
@@ -37,9 +37,8 @@ class HandController:
         """
         Move TIAGo hand to specified joint positions.
         
-        Args:
-            joint_positions: List of 3 joint positions (radians) for thumb, index, mrl
-            duration: Duration for the movement in seconds
+        joint_positions: List of 3 joint positions (radians) for thumb, index, mrl
+        duration: Duration for the movement in seconds
         """
         if duration is None:
             duration = self.movement_duration
@@ -121,8 +120,7 @@ class HandController:
         """
         Perform a waving gesture by alternating between open and partially closed hand.
         
-        Args:
-            wave_count: Number of wave cycles
+        wave_count: Number of wave cycles
         """
         rospy.loginfo(f"Starting wave gesture with {wave_count} waves")
         
@@ -138,29 +136,30 @@ class HandController:
         # Return to open position
         self.open_hand(0.5)
         rospy.loginfo("Wave gesture completed")
-    
-    def grasp_object(self, grip_strength: float = 0.7, duration: float = None) -> None:
-        """
-        Grasp an object with specified grip strength.
+
+
+    # TODO: change grip params ??
+    # def grasp_object(self, grip_strength: float = 0.7, duration: float = None) -> None:       
+    #     """
+    #     Grasp an object with specified grip strength.
         
-        Args:
-            grip_strength: Grip strength from 0.0 (open) to 1.0 (maximum grip)
-            duration: Duration for the grasping movement
-        """
-        if duration is None:
-            duration = self.movement_duration
+    #     grip_strength: Grip strength from 0.0 (open) to 1.0 (maximum grip)
+    #     duration: Duration for the grasping movement
+    #     """
+    #     if duration is None:
+    #         duration = self.movement_duration
             
-        grip_strength = max(0.0, min(1.0, grip_strength))  # Clamp to [0,1]
-        max_close = 1.2  # Maximum closing angle
+    #     grip_strength = max(0.0, min(1.0, grip_strength))  # Clamp to [0,1]
+    #     max_close = 1.2  # Maximum closing angle
         
-        grasp_positions = [
-            grip_strength * max_close,  # thumb
-            grip_strength * max_close,  # index
-            grip_strength * max_close   # mrl (middle, ring, little)
-        ]
+    #     grasp_positions = [
+    #         grip_strength * max_close,  # thumb
+    #         grip_strength * max_close,  # index
+    #         grip_strength * max_close   # mrl (middle, ring, little)
+    #     ]
         
-        self.move_hand(grasp_positions, duration)
-        rospy.loginfo(f"Hand grasping with strength {grip_strength:.2f}")
+    #     self.move_hand(grasp_positions, duration)
+    #     rospy.loginfo(f"Hand grasping with strength {grip_strength:.2f}")
     
     def release_object(self, duration: float = None) -> None:
         """Release grasped object by opening hand."""
@@ -171,11 +170,10 @@ class HandController:
     
     def custom_gesture(self, positions: Dict[str, float], duration: float = None) -> None:
         """
-        Perform custom gesture with specified joint positions.
+        Perform a custom gesture with specified joint positions.
         
-        Args:
-            positions: Dictionary mapping joint names to positions (radians)
-            duration: Duration for the movement
+        positions: Dictionary mapping joint names to positions (radians)
+        duration: Duration for the movement
         """
         if duration is None:
             duration = self.movement_duration
@@ -192,7 +190,7 @@ class HandController:
         rospy.loginfo(f"Custom gesture executed: {positions}")
     
     def get_preset_gestures(self) -> List[str]:
-        """Get list of available preset gestures."""
+        """get list of available preset gestures."""
         return [
             'open_hand', 'close_hand', 'make_fist', 'point_finger', 
             'peace_sign', 'thumbs_up', 'ok_sign', 'wave_gesture'
@@ -202,12 +200,10 @@ class HandController:
         """
         Perform a gesture by name.
         
-        Args:
-            gesture_name: Name of the gesture to perform
-            **kwargs: Additional arguments for the gesture
+        gesture_name: Name of the gesture to perform
+        **kwargs: Additional arguments for the gesture - TODO ?
             
-        Returns:
-            True if gesture was performed, False if gesture not found
+        returnsTrue if gesture was performed, False if gesture not found
         """
         gesture_methods = {
             'open_hand': self.open_hand,

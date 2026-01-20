@@ -39,13 +39,3 @@ Control tiago with arrow keys
 ```sh
 rosrun key_teleop key_teleop.py
 ```
-
-Non mi ricordo, roba inutile
-```sh
-rostopic pub /arm_controller/command trajectory_msgs/JointTrajectory "
-  joint_names: ['arm_1_joint', 'arm_2_joint', 'arm_3_joint', 'arm_4_joint', 'arm_5_joint', 'arm_6_joint', 'arm_7_joint']
-  points:
-  - positions: [2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    time_from_start: {secs: 0, nsecs: 500}"
-
-```

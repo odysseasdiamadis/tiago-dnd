@@ -20,20 +20,3 @@ roslaunch tiago_gazebo tiago_gazebo.launch public_sim:=true end_effector:=pal-he
 python3 src/tiago_ws/src/tiago_actions/src/scripts/search_players.py    # start simulation test script
 
 To work or send ros commands on Tiago, run ./join.sh in another terminal window. 
-
-
-
-
-# ALTRO:
-## TODOS
-- [ ] Riconoscimento giocatori
-    - [ ] Avere un set predefinito di posizioni, e tiago chiede uno ad uno come si chiama o di indentificarsi
-- [ ] tiago deve poter indicare i giocatori per farli giocare a turni
-
-### Funzionalità
-- [ ] Memorizzare la posizione dei giocatori
-- [ ] Indicare i giocatori
-    - [ ] muovere testa e braccio nella loro direzione (ROS)
-- [ ] parlare ai giocatori (TTS)
-- [ ] capire cosa dicono i giocatori e tenere uno storico delle loro conversazioni (STT)
-    - [ ] capire quando uno smette di parlare

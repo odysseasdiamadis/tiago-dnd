@@ -50,7 +50,7 @@ def dump_image(cropped_face: Image, output_path: str) -> None:
 
 # Generate a face embedding using DeepFace
 def get_face_embedding(image: Image) -> np.ndarray:
-    temp_filename = "src/test-scripts/temp/temp_face.jpg"
+    temp_filename = "src/brain_test_scripts/temp/temp_face.jpg"
     image.save(temp_filename)
     embedding = DeepFace.represent(temp_filename, model_name="Facenet", enforce_detection=False)
     os.remove(temp_filename)
@@ -63,7 +63,7 @@ def compare_embeddings(embedding1: np.ndarray, embedding2: np.ndarray) -> float:
     return similarity
 
 
-# Check if an embedding is already in the database
+#Check if an embedding is already in the database
 def is_face_known(new_embedding: np.ndarray, database: list, threshold: float = 0.7) -> bool:
     for known_embedding in database:
         similarity = compare_embeddings(new_embedding, known_embedding)
@@ -122,13 +122,13 @@ def process_all_images(input_folder: str, output_folder: str, model, database: l
 
 # Main function
 def main():
-    input_folder = "src/test-scripts/img_input_example"
-    output_folder = "src/test-scripts/out_folder"
+    input_folder = "src/brain_test_scripts/img_input_example"
+    output_folder = "src/brain_test_scripts/out_folder"
     model_path = download_model("arnabdhar/YOLOv8-Face-Detection", "model.pt")
 
     model = YOLO(model_path)
 
-    # Initialize an empty database for face embeddings
+    # Initialise an empty database for face embeddings
     face_database = []
 
     process_all_images(input_folder, output_folder, model, face_database)

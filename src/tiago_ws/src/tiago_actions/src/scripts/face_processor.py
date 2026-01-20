@@ -47,7 +47,7 @@ class FaceProcessor:
                 embedding_data = DeepFace.represent(tmp_path, model_name="Facenet", enforce_detection=False)
                 if embedding_data:
                     embedding = np.array(embedding_data[0]['embedding'])
-                    rospy.loginfo("Face embedding extracted successfully")
+                    rospy.loginfo("Face embedding extracted successfully!!")
                     return embedding
                 else:
                     rospy.logwarn("DeepFace returned empty embedding data")

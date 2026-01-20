@@ -8,7 +8,7 @@ def send_head_trajectory():
     # Initialize the ROS node
     rospy.init_node('head_trajectory_publisher', anonymous=True)
 
-    # Create the publisher
+    #Create the publisher
     pub = rospy.Publisher('/head_controller/command', JointTrajectory, queue_size=10)
 
     # Wait for publisher connection (optional but good practice)
