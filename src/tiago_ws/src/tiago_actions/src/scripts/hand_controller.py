@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import rospy
 import actionlib
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
@@ -36,7 +34,6 @@ class HandController:
     def move_hand(self, joint_positions: List[float], duration: float = None) -> None:
         """
         Move TIAGo hand to specified joint positions.
-        
         joint_positions: List of 3 joint positions (radians) for thumb, index, mrl
         duration: Duration for the movement in seconds
         """
@@ -60,7 +57,7 @@ class HandController:
         self.hand_client.send_goal_and_wait(goal, execute_timeout=rospy.Duration(duration + 2.0))
         rospy.loginfo(f"Hand moved to positions: {[f'{pos:.2f}' for pos in joint_positions]}")
     
-    def open_hand(self, duration: float = None) -> None:
+    def open_hand(self, duration: float = None):
         """Open all fingers completely."""
         if duration is None:
             duration = self.movement_duration
@@ -68,7 +65,7 @@ class HandController:
         self.move_hand(open_positions, duration)
         rospy.loginfo("Hand opened")
     
-    def close_hand(self, duration: float = None) -> None:
+    def close_hand(self, duration: float = None):
         """Close all fingers completely."""
         if duration is None:
             duration = self.movement_duration
@@ -76,7 +73,7 @@ class HandController:
         self.move_hand(close_positions, duration)
         rospy.loginfo("Hand closed")
     
-    def make_fist(self, duration: float = None) -> None:
+    def make_fist(self, duration: float = None):
         """Make a fist gesture."""
         if duration is None:
             duration = self.gesture_duration
@@ -84,7 +81,7 @@ class HandController:
         self.move_hand(fist_positions, duration)
         rospy.loginfo("Hand making fist")
     
-    def point_finger(self, duration: float = None) -> None:
+    def point_finger(self, duration: float = None):
         """Point with index finger (pointing gesture)."""
         if duration is None:
             duration = self.gesture_duration
@@ -92,7 +89,7 @@ class HandController:
         self.move_hand(point_positions, duration)
         rospy.loginfo("Hand pointing")
     
-    def peace_sign(self, duration: float = None) -> None:
+    def peace_sign(self, duration: float = None):
         """Make peace sign with index and middle finger."""
         if duration is None:
             duration = self.gesture_duration
@@ -100,7 +97,7 @@ class HandController:
         self.move_hand(peace_positions, duration)
         rospy.loginfo("Hand making peace sign")
     
-    def thumbs_up(self, duration: float = None) -> None:
+    def thumbs_up(self, duration: float = None):
         """Thumbs up gesture."""
         if duration is None:
             duration = self.gesture_duration
@@ -108,7 +105,7 @@ class HandController:
         self.move_hand(thumbs_up_positions, duration)
         rospy.loginfo("Hand making thumbs up")
     
-    def ok_sign(self, duration: float = None) -> None:
+    def ok_sign(self, duration: float = None):
         """Make OK sign with thumb and index finger."""
         if duration is None:
             duration = self.gesture_duration
@@ -116,7 +113,7 @@ class HandController:
         self.move_hand(ok_positions, duration)
         rospy.loginfo("Hand making OK sign")
     
-    def wave_gesture(self, wave_count: int = 3) -> None:
+    def wave_gesture(self, wave_count: int = 3):
         """
         Perform a waving gesture by alternating between open and partially closed hand.
         
@@ -161,17 +158,16 @@ class HandController:
     #     self.move_hand(grasp_positions, duration)
     #     rospy.loginfo(f"Hand grasping with strength {grip_strength:.2f}")
     
-    def release_object(self, duration: float = None) -> None:
+    def release_object(self, duration: float = None):
         """Release grasped object by opening hand."""
         if duration is None:
             duration = self.movement_duration
         self.open_hand(duration)
         rospy.loginfo("Object released")
     
-    def custom_gesture(self, positions: Dict[str, float], duration: float = None) -> None:
+    def custom_gesture(self, positions: Dict[str, float], duration: float = None):
         """
         Perform a custom gesture with specified joint positions.
-        
         positions: Dictionary mapping joint names to positions (radians)
         duration: Duration for the movement
         """
@@ -199,10 +195,8 @@ class HandController:
     def perform_gesture(self, gesture_name: str, **kwargs) -> bool:
         """
         Perform a gesture by name.
-        
         gesture_name: Name of the gesture to perform
         **kwargs: Additional arguments for the gesture - TODO ?
-            
         returnsTrue if gesture was performed, False if gesture not found
         """
         gesture_methods = {
@@ -214,7 +208,7 @@ class HandController:
             'thumbs_up': self.thumbs_up,
             'ok_sign': self.ok_sign,
             'wave_gesture': self.wave_gesture,
-            'grasp_object': self.grasp_object,
+            #'grasp_object': self.grasp_object,
             'release_object': self.release_object
         }
         
@@ -266,22 +260,22 @@ def test_basic_gestures():
     rospy.loginfo("Hand gesture test completed")
 
 
-def test_grasping():
-    """Test grasping functionality."""
-    rospy.init_node('hand_grasping_test', anonymous=True)
-    controller = HandController()
+# def test_grasping():
+#     """Test grasping functionality."""
+#     rospy.init_node('hand_grasping_test', anonymous=True)
+#     controller = HandController()
     
-    rospy.loginfo("Testing grasping functionality...")
+#     rospy.loginfo("Testing grasping functionality...")
     
-    # Test different grip strengths
-    for strength in [0.2, 0.5, 0.8]:
-        rospy.loginfo(f"Testing grip strength: {strength}")
-        controller.grasp_object(grip_strength=strength)
-        rospy.sleep(2)
-        controller.release_object()
-        rospy.sleep(1)
+#     # Test different grip strengths
+#     for strength in [0.2, 0.5, 0.8]:
+#         rospy.loginfo(f"Testing grip strength: {strength}")
+#         controller.grasp_object(grip_strength=strength)
+#         rospy.sleep(2)
+#         controller.release_object()
+#         rospy.sleep(1)
     
-    rospy.loginfo("Grasping test completed")
+#     rospy.loginfo("Grasping test completed")
 
 
 if __name__ == '__main__':

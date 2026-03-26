@@ -93,7 +93,7 @@ class AudioRecorder:
     def find_mic_index(self,  auto_select:bool=False) -> int:
         """Tries to automatically find the correct microphone index for the device. 
         Useful in the docker or even if you are not sure.
-        @param auto_select: if True, does not ask user to select mic and automatically selects the first non zero one.
+        param auto_select: if True, does not ask user to select mic and automatically selects the first non zero one.
         NOTE: this is a modified version of the above unit tests one, with slight modifications to make it work in a class.
         """
         # List devices if device_index is not provided
@@ -115,8 +115,7 @@ class AudioRecorder:
 
 def create_record_window(on_audio_ready=None):
     """Creates the UI to send a vocal message and interact with an llm for Tiago interactions.
-    
-        @param on_audio_ready:  Optional callback function that receives audio_bytes when recording stops.
+        param on_audio_ready:  Optional callback function that receives audio_bytes when recording stops.
                                 If None, no processing is done (just prints debug info).
     """
     # GUI setup
@@ -227,12 +226,13 @@ def create_record_window(on_audio_ready=None):
 # Main execution
 if __name__ == "__main__":
     
-    # TODO: custom handler (customize when using with Tiago)
+    ### TEST ONLY:
+    # custom handler (customize when using with Tiago)
     def handle_audio(audio_bytes):
         print(type(audio_bytes))
         print(f"Got {len(audio_bytes)} bytes of audio!")    
         # Simulate processing time (transcription, LLM, TTS, etc.)
-        time.sleep(3) # change, of course    
+        time.sleep(3) #   
         print("Process complete!")
     
     interaction_gui, recorder = create_record_window(on_audio_ready=handle_audio)

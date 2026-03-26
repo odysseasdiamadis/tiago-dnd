@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import rospy
 import numpy as np
 from geometry_msgs.msg import Pose, Point, Quaternion, PoseStamped
@@ -111,6 +109,7 @@ class ArmController:
             self.set_shoulder_down_constraint(False)
             self.set_elbow_down_constraint(False)
             rospy.loginfo("Natural pointing constraints disabled")
+            
     
     def clear_constraints(self):
         """Clear all path constraints."""
@@ -118,6 +117,7 @@ class ArmController:
         self.use_elbow_constraint = False
         self.use_shoulder_constraint = False
         rospy.loginfo("All path constraints cleared")
+
     
     def move_to_pose(self, position: Tuple[float, float, float], 
                      orientation: Tuple[float, float, float, float] = None,
@@ -234,16 +234,12 @@ class ArmController:
     def point_at_player(self, player, arm_distance: float = 0.6, arm_height: float = 1.2, 
                        keep_elbow_down: bool = None) -> bool:
         """
-        Point the arm towards a player based on their yaw angle.
-        
-        Args:
-            player: Player object with yaw field
-            arm_distance: Distance from robot base to place the arm (meters)
-            arm_height: Height at which to position the arm (meters)
-            keep_elbow_down: Force elbow down for this movement
-            
-        Returns:
-            True if successful, False otherwise
+        Point the arm towards a player based on their yaw angle.     
+        player: Player object with yaw field
+        arm_distance: Distance from robot base to place the arm (meters)
+        arm_height: Height at which to position the arm (meters)
+        keep_elbow_down: Force elbow down for this movement
+        Returns True if successful, False otherwise
         """
         # Create rotation matrix for yaw rotation around z-axis
         yaw = player.yaw
@@ -284,10 +280,8 @@ class ArmController:
                      delta_rpy: Tuple[float, float, float] = (0, 0, 0)) -> bool:
         """
         Move relative to current position.
-        
         delta_position: (dx, dy, dz) relative movement in meters
         delta_rpy: (d_roll, d_pitch, d_yaw) relative rotation in radians
-            
         Returns True if successful, False otherwise
         """
         current_pose = self.get_current_pose()
@@ -362,9 +356,7 @@ class ArmController:
     def move_to_preset(self, preset_name: str) -> bool:
         """
         Move to a predefined pose.
-        
-        preset_name: Name of the preset pose
-            
+        preset_name: Name of the preset pose 
         ReturnsTrue if successful, False otherwise
         """
         presets = self.get_predefined_poses()
@@ -562,7 +554,7 @@ def test_natural_pointing():
 
 def demo_custom_poses():
     """
-    Demo custom pose control.
+    Demo of custom pose control.
     """
     rospy.init_node('arm_custom_demo', anonymous=True)
     controller = ArmController()

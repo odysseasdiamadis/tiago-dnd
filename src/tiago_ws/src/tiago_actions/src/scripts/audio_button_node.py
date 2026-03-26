@@ -107,8 +107,7 @@ class AudioRecorder:
 
 def create_record_window(on_audio_ready=None):
     """Creates the UI to send a vocal message and interact with an llm for Tiago interactions.
-    
-        @param on_audio_ready:  Optional callback function that receives audio_bytes when recording stops.
+         param on_audio_ready:  an optional callback function that receives audio_bytes when recording stops.
     """
     window = tk.Tk()
     window.title("Tieni premuto per parlare con Tiago.")
@@ -202,7 +201,7 @@ def create_record_window(on_audio_ready=None):
     return window, recorder
 
 
-# ========== ROS INTEGRATION ==========
+### ROS INTEGRATION below:
 
 def main():
     # Init  ROS node
@@ -236,7 +235,4 @@ def main():
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except rospy.ROSInterruptException:
-        pass
+    main()

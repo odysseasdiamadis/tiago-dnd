@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import rospy
 import numpy as np
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
@@ -35,7 +33,7 @@ class HeadController:
         self.image_height = 480
         self.image_center_x = self.image_width / 2
         
-        rospy.sleep(0.5)  # Wait for publisher to initialize
+        rospy.sleep(0.5)  # Wait for publisher to init
     
         self.face_processor = FaceProcessor(
             similarity_threshold=0.9, # threshold for cosine similarity

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from dataclasses import dataclass
 from typing import Any, Union, List
 import rospy
@@ -177,23 +175,19 @@ class MainSceneController:
 
 # NOTE: set a starting prompt to boot up the session. Fopr example, describe thee scene and the setting of what you would like to play and let tiago do the rest!!
 if __name__ == '__main__':
-    try:
-        # node = MainSceneController(
-        #     prompt='''
-        # Vi trovate all'interno di una taverna.
-        # Uno straniero nella taverna proveniente da Mordor si avvicina al tavolo per chiedere se siamo dei cercatori d'oro. Vuole reclutarci per una
-        # missione molto pericolosa per sconfiggere il capo degli orchi. Sta cercando delle persone valorose ed è disposto a pagarle bene e ad indicare la strada.
-        # ''',
-        # first_round_prompt= "Vi trovate all'interno di una taverna. Uno straniero con i vestiti tipici di Mordor si avvicina a voi."
-        # )
+    # node = MainSceneController(
+    #     prompt='''
+    # Vi trovate all'interno di una taverna.
+    # Uno straniero nella taverna proveniente da Mordor si avvicina al tavolo per chiedere se siamo dei cercatori d'oro. Vuole reclutarci per una
+    # missione molto pericolosa per sconfiggere il capo degli orchi. Sta cercando delle persone valorose ed è disposto a pagarle bene e ad indicare la strada.
+    # ''',
+    # first_round_prompt= "Vi trovate all'interno di una taverna. Uno straniero con i vestiti tipici di Mordor si avvicina a voi."
+    # )
 
-        node = MainSceneController(
-            prompt='''
+    node = MainSceneController(
+        prompt='''
 Vi trovate all'interno alle porte di un antico tempio che è un vero e proprio dungeon con trappole, tesori e varie strade. All'interno è contenuto il tesoro di un vecchio re, che voi siete andati a recuperare. L'ingresso è un grande portone che si apre su una stanza con tante statue e due diverse ramificazioni che portano all'interno del tempio.
-            ''',
-            first_round_prompt=None
-        )
-        node.run_scene()
-
-    except rospy.ROSInterruptException:
-        pass
+        ''',
+        first_round_prompt=None
+    )
+    node.run_scene()

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from dataclasses import dataclass
 from typing import Any, Union, List
 import rospy
@@ -147,7 +145,7 @@ class EnhancedPlayerSearcher:
                     # Save the player with the current centered yaw
                     # self.players = self.player_db.load_players()
                     new_players_count += 1
-                    rospy.loginfo(f"\n🎲 New player found! 🎲\n")
+                    rospy.loginfo(f"\nNew player found!\n")
                     
                     self.brain_interactor.say(f"Ciao avventuriero! Come ti chiami? E cosa vuoi giocare oggi?", language='it')
 
@@ -267,9 +265,6 @@ Infine, chiedi al giocatore cosa vuole fare.
 
 
 if __name__ == '__main__':
-    try:
-        node = EnhancedPlayerSearcher(-1.20, 1.20, 0.3)
-        node.run_search_demo()
-        # node.run_face_reco_demo('.')
-    except rospy.ROSInterruptException:
-        pass
+    node = EnhancedPlayerSearcher(-1.20, 1.20, 0.3)
+    node.run_search_demo()
+    # node.run_face_reco_demo('.')

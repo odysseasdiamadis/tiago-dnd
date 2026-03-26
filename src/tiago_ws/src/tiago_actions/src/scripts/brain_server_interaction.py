@@ -92,7 +92,7 @@ class BrainInteractor:
     def find_mic_index(self, p:pyaudio.PyAudio, auto_select:bool=False) -> int:
         """Tries to automatically find the correct microphone index for the device. 
         Useful in the docker or even if you are not sure.
-        @param auto_select: if True, does not ask user to select mic and automatically selects the first non zero one.
+        param auto_select: if True, does not ask user to select mic and automatically selects the first non zero one.
         """
         # List devices if device_index is not provided
         print("Available audio input devices:")
@@ -312,7 +312,7 @@ Il giocatore è: {player}
     print(interactor.ask_llm(prompt.format(player=player2)))
 
 if __name__ == "__main__":
-# TEST THE FUNCTIONS:
+    # TEST THE FUNCTIONS:
 
     # create interactor obj
     # Say aloud the answer:
