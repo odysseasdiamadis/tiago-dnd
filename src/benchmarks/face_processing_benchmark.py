@@ -123,7 +123,8 @@ def run_benchmark(input_folder: str, output_tsv: str):
 
 
 if __name__ == "__main__":
+    FP_BENCHMARK_OUTPUT_FILE = "src/benchmarks/face_processing_benchmark.tsv"
     run_benchmark(
         input_folder="src/benchmarks/faces_images",
-        output_tsv="src/benchmarks/face_processing_benchmark.tsv",
+        output_tsv=FP_BENCHMARK_OUTPUT_FILE
     )
