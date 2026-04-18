@@ -25,7 +25,7 @@ def create_chat_server(model_name, device=-1):
 
 
 def send_test_request():
-    time.sleep(5)  # Give the server a moment to start
+    time.sleep(5)  # Give server a moment to start
     test_input = [{'id': 1, 'text': "What is the capital of France?"}]
     try:
         response = requests.post("http://localhost:5001/", json=test_input)

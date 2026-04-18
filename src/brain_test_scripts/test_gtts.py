@@ -1,7 +1,7 @@
 from gtts import gTTS
 import os
 
-# text = "This is a test of Google Text-to-Speech on Linux."
+# text = "This is a test of Gogle Text-to-Speech on Linux."
 # language = 'en'
 
 USE_PULSE = False
