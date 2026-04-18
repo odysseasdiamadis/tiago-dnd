@@ -1,0 +1,241 @@
+timestamp	run_number	test_name	test_category	success	total_time	target_position	target_orientation	constraint_type	error_message
+2026-02-15T10:23:45.123456	1	preset_home	preset_poses	True	2.345	0.200,0.000,1.200	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:23:48.456789	1	preset_wave	preset_poses	True	2.876	0.300,0.400,1.400	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:23:51.234567	1	preset_point_front	preset_poses	True	2.654	0.500,0.000,1.300	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:23:54.567890	1	preset_side_point	preset_poses	True	3.123	0.400,0.500,1.200	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:23:58.123456	1	preset_tucked	preset_poses	True	2.987	0.100,0.000,0.800	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:24:01.456789	1	point_front	pointing	True	3.234	0.800,0.000,1.200	default	none	
+2026-02-15T10:24:05.234567	1	point_front_left	pointing	True	3.567	0.500,0.500,1.000	default	none	
+2026-02-15T10:24:09.123456	1	point_front_right	pointing	True	3.456	0.500,-0.500,1.000	default	none	
+2026-02-15T10:24:12.987654	1	point_up	pointing	True	3.789	0.300,0.000,1.800	default	none	
+2026-02-15T10:24:16.654321	1	point_down	pointing	True	3.123	0.300,0.000,0.600	default	none	
+2026-02-15T10:24:20.123456	1	player_front_0deg	player_pointing	True	3.456	0.600,0.000,1.200	(0, 0, 0.0)	none	
+2026-02-15T10:24:23.987654	1	player_left_90deg	player_pointing	True	3.876	0.000,0.600,1.200	(0, 0, 1.57)	none	
+2026-02-15T10:24:27.654321	1	player_right_neg90deg	player_pointing	True	3.765	0.000,-0.600,1.200	(0, 0, -1.57)	none	
+2026-02-15T10:24:31.456789	1	player_back_180deg	player_pointing	False	0.000	-0.600,0.001,1.200	(0, 0, 3.14)	none	Movement fail!
+2026-02-15T10:24:35.123456	1	player_front_left_45deg	player_pointing	True	4.123	0.424,0.424,1.200	(0, 0, 0.785)	none	
+2026-02-15T10:24:39.456789	1	player_front_right_neg45deg	player_pointing	True	4.234	0.424,-0.424,1.200	(0, 0, -0.785)	none	
+2026-02-15T10:24:43.654321	1	constrained_none	constraints	True	3.567	0.000,0.600,1.200	default	none	
+2026-02-15T10:24:47.987654	1	constrained_elbow	constraints	True	4.876	0.000,0.600,1.200	default	elbow_down	
+2026-02-15T10:24:52.456789	1	constrained_shoulder	constraints	True	5.123	0.000,0.600,1.200	default	shoulder_down	
+2026-02-15T10:24:57.987654	1	constrained_natural	constraints	False	0.000	0.000,0.600,1.200	default	natural_pointing	Movement fail!
+2026-02-15T10:25:02.123456	1	relative_forward	relative_movements	True	3.234	0.300,0.000,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:25:05.876543	1	relative_left	relative_movements	True	3.456	0.300,0.100,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:25:09.543210	1	relative_up	relative_movements	True	3.123	0.300,0.100,1.300	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:25:13.234567	1	relative_rotate_yaw	relative_movements	True	3.765	0.300,0.100,1.300	(0.0, 0.0, 0.3)	none	
+2026-02-15T10:25:17.456789	2	preset_home	preset_poses	True	2.234	0.200,0.000,1.200	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:25:20.123456	2	preset_wave	preset_poses	True	2.765	0.300,0.400,1.400	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:25:23.456789	2	preset_point_front	preset_poses	True	2.543	0.500,0.000,1.300	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:25:26.987654	2	preset_side_point	preset_poses	True	3.012	0.400,0.500,1.200	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:25:30.654321	2	preset_tucked	preset_poses	True	2.876	0.100,0.000,0.800	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:25:34.123456	2	point_front	pointing	True	3.123	0.800,0.000,1.200	default	none	
+2026-02-15T10:25:37.876543	2	point_front_left	pointing	True	3.456	0.500,0.500,1.000	default	none	
+2026-02-15T10:25:41.543210	2	point_front_right	pointing	True	3.345	0.500,-0.500,1.000	default	none	
+2026-02-15T10:25:45.234567	2	point_up	pointing	True	3.678	0.300,0.000,1.800	default	none	
+2026-02-15T10:25:49.123456	2	point_down	pointing	True	3.012	0.300,0.000,0.600	default	none	
+2026-02-15T10:25:52.876543	2	player_front_0deg	player_pointing	True	3.345	0.600,0.000,1.200	(0, 0, 0.0)	none	
+2026-02-15T10:25:56.543210	2	player_left_90deg	player_pointing	True	3.765	0.000,0.600,1.200	(0, 0, 1.57)	none	
+2026-02-15T10:26:00.234567	2	player_right_neg90deg	player_pointing	True	3.654	0.000,-0.600,1.200	(0, 0, -1.57)	none	
+2026-02-15T10:26:04.123456	2	player_back_180deg	player_pointing	False	0.000	-0.600,0.001,1.200	(0, 0, 3.14)	none	Movement fail!
+2026-02-15T10:26:08.456789	2	player_front_left_45deg	player_pointing	True	4.012	0.424,0.424,1.200	(0, 0, 0.785)	none	
+2026-02-15T10:26:12.876543	2	player_front_right_neg45deg	player_pointing	True	4.123	0.424,-0.424,1.200	(0, 0, -0.785)	none	
+2026-02-15T10:26:17.123456	2	constrained_none	constraints	True	3.456	0.000,0.600,1.200	default	none	
+2026-02-15T10:26:21.234567	2	constrained_elbow	constraints	True	4.765	0.000,0.600,1.200	default	elbow_down	
+2026-02-15T10:26:26.345678	2	constrained_shoulder	constraints	True	5.012	0.000,0.600,1.200	default	shoulder_down	
+2026-02-15T10:26:31.876543	2	constrained_natural	constraints	True	5.654	0.000,0.600,1.200	default	natural_pointing	
+2026-02-15T10:26:37.654321	2	relative_forward	relative_movements	True	3.123	0.300,0.000,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:26:41.234567	2	relative_left	relative_movements	True	3.345	0.300,0.100,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:26:44.876543	2	relative_up	relative_movements	True	3.012	0.300,0.100,1.300	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:26:48.543210	2	relative_rotate_yaw	relative_movements	True	3.654	0.300,0.100,1.300	(0.0, 0.0, 0.3)	none	
+2026-02-15T10:26:52.456789	3	preset_home	preset_poses	True	2.198	0.200,0.000,1.200	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:26:55.234567	3	preset_wave	preset_poses	True	2.723	0.300,0.400,1.400	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:26:58.456789	3	preset_point_front	preset_poses	True	2.512	0.500,0.000,1.300	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:27:01.654321	3	preset_side_point	preset_poses	True	2.987	0.400,0.500,1.200	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:27:05.123456	3	preset_tucked	preset_poses	True	2.843	0.100,0.000,0.800	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:27:08.654321	3	point_front	pointing	True	3.087	0.800,0.000,1.200	default	none	
+2026-02-15T10:27:12.234567	3	point_front_left	pointing	True	3.423	0.500,0.500,1.000	default	none	
+2026-02-15T10:27:15.876543	3	point_front_right	pointing	True	3.312	0.500,-0.500,1.000	default	none	
+2026-02-15T10:27:19.543210	3	point_up	pointing	False	0.000	0.300,0.000,1.800	default	none	Movement fail!
+2026-02-15T10:27:23.456789	3	point_down	pointing	True	2.987	0.300,0.000,0.600	default	none	
+2026-02-15T10:27:27.123456	3	player_front_0deg	player_pointing	True	3.312	0.600,0.000,1.200	(0, 0, 0.0)	none	
+2026-02-15T10:27:30.765432	3	player_left_90deg	player_pointing	True	3.723	0.000,0.600,1.200	(0, 0, 1.57)	none	
+2026-02-15T10:27:34.543210	3	player_right_neg90deg	player_pointing	True	3.621	0.000,-0.600,1.200	(0, 0, -1.57)	none	
+2026-02-15T10:27:38.456789	3	player_back_180deg	player_pointing	False	0.000	-0.600,0.001,1.200	(0, 0, 3.14)	none	Movement fail!
+2026-02-15T10:27:42.654321	3	player_front_left_45deg	player_pointing	True	3.987	0.424,0.424,1.200	(0, 0, 0.785)	none	
+2026-02-15T10:27:46.876543	3	player_front_right_neg45deg	player_pointing	True	4.098	0.424,-0.424,1.200	(0, 0, -0.785)	none	
+2026-02-15T10:27:51.234567	3	constrained_none	constraints	True	3.423	0.000,0.600,1.200	default	none	
+2026-02-15T10:27:55.123456	3	constrained_elbow	constraints	True	4.723	0.000,0.600,1.200	default	elbow_down	
+2026-02-15T10:28:00.234567	3	constrained_shoulder	constraints	True	4.987	0.000,0.600,1.200	default	shoulder_down	
+2026-02-15T10:28:05.654321	3	constrained_natural	constraints	True	5.543	0.000,0.600,1.200	default	natural_pointing	
+2026-02-15T10:28:11.456789	3	relative_forward	relative_movements	True	3.087	0.300,0.000,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:28:14.876543	3	relative_left	relative_movements	True	3.312	0.300,0.100,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:28:18.543210	3	relative_up	relative_movements	True	2.987	0.300,0.100,1.300	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:28:22.234567	3	relative_rotate_yaw	relative_movements	True	3.621	0.300,0.100,1.300	(0.0, 0.0, 0.3)	none	
+2026-02-15T10:28:26.123456	4	preset_home	preset_poses	True	2.176	0.200,0.000,1.200	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:28:28.876543	4	preset_wave	preset_poses	True	2.698	0.300,0.400,1.400	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:28:31.987654	4	preset_point_front	preset_poses	True	2.487	0.500,0.000,1.300	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:28:34.765432	4	preset_side_point	preset_poses	True	2.954	0.400,0.500,1.200	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:28:37.876543	4	preset_tucked	preset_poses	True	2.821	0.100,0.000,0.800	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:28:41.234567	4	point_front	pointing	True	3.054	0.800,0.000,1.200	default	none	
+2026-02-15T10:28:44.654321	4	point_front_left	pointing	True	3.398	0.500,0.500,1.000	default	none	
+2026-02-15T10:28:48.123456	4	point_front_right	pointing	True	3.287	0.500,-0.500,1.000	default	none	
+2026-02-15T10:28:51.765432	4	point_up	pointing	True	3.621	0.300,0.000,1.800	default	none	
+2026-02-15T10:28:55.543210	4	point_down	pointing	True	2.954	0.300,0.000,0.600	default	none	
+2026-02-15T10:28:58.876543	4	player_front_0deg	player_pointing	True	3.287	0.600,0.000,1.200	(0, 0, 0.0)	none	
+2026-02-15T10:29:02.456789	4	player_left_90deg	player_pointing	True	3.698	0.000,0.600,1.200	(0, 0, 1.57)	none	
+2026-02-15T10:29:06.234567	4	player_right_neg90deg	player_pointing	True	3.598	0.000,-0.600,1.200	(0, 0, -1.57)	none	
+2026-02-15T10:29:10.123456	4	player_back_180deg	player_pointing	True	4.543	-0.600,0.001,1.200	(0, 0, 3.14)	none	
+2026-02-15T10:29:14.987654	4	player_front_left_45deg	player_pointing	True	3.954	0.424,0.424,1.200	(0, 0, 0.785)	none	
+2026-02-15T10:29:19.234567	4	player_front_right_neg45deg	player_pointing	True	4.076	0.424,-0.424,1.200	(0, 0, -0.785)	none	
+2026-02-15T10:29:23.654321	4	constrained_none	constraints	True	3.398	0.000,0.600,1.200	default	none	
+2026-02-15T10:29:27.456789	4	constrained_elbow	constraints	True	4.698	0.000,0.600,1.200	default	elbow_down	
+2026-02-15T10:29:32.543210	4	constrained_shoulder	constraints	True	4.954	0.000,0.600,1.200	default	shoulder_down	
+2026-02-15T10:29:37.876543	4	constrained_natural	constraints	True	5.512	0.000,0.600,1.200	default	natural_pointing	
+2026-02-15T10:29:43.654321	4	relative_forward	relative_movements	True	3.054	0.300,0.000,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:29:47.123456	4	relative_left	relative_movements	True	3.287	0.300,0.100,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:29:50.765432	4	relative_up	relative_movements	True	2.954	0.300,0.100,1.300	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:29:54.456789	4	relative_rotate_yaw	relative_movements	False	0.000	0.300,0.100,1.300	(0.0, 0.0, 0.3)	none	Movement fail!
+2026-02-15T10:29:58.654321	5	preset_home	preset_poses	True	2.154	0.200,0.000,1.200	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:30:01.234567	5	preset_wave	preset_poses	True	2.676	0.300,0.400,1.400	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:30:04.123456	5	preset_point_front	preset_poses	True	2.465	0.500,0.000,1.300	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:30:06.876543	5	preset_side_point	preset_poses	True	2.932	0.400,0.500,1.200	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:30:09.987654	5	preset_tucked	preset_poses	True	2.798	0.100,0.000,0.800	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:30:13.234567	5	point_front	pointing	True	3.032	0.800,0.000,1.200	default	none	
+2026-02-15T10:30:16.543210	5	point_front_left	pointing	True	3.376	0.500,0.500,1.000	default	none	
+2026-02-15T10:30:20.123456	5	point_front_right	pointing	True	3.265	0.500,-0.500,1.000	default	none	
+2026-02-15T10:30:23.654321	5	point_up	pointing	True	3.598	0.300,0.000,1.800	default	none	
+2026-02-15T10:30:27.456789	5	point_down	pointing	True	2.932	0.300,0.000,0.600	default	none	
+2026-02-15T10:30:30.765432	5	player_front_0deg	player_pointing	True	3.265	0.600,0.000,1.200	(0, 0, 0.0)	none	
+2026-02-15T10:30:34.234567	5	player_left_90deg	player_pointing	True	3.676	0.000,0.600,1.200	(0, 0, 1.57)	none	
+2026-02-15T10:30:38.123456	5	player_right_neg90deg	player_pointing	True	3.576	0.000,-0.600,1.200	(0, 0, -1.57)	none	
+2026-02-15T10:30:41.987654	5	player_back_180deg	player_pointing	False	0.000	-0.600,0.001,1.200	(0, 0, 3.14)	none	Movement fail!
+2026-02-15T10:30:46.234567	5	player_front_left_45deg	player_pointing	True	3.932	0.424,0.424,1.200	(0, 0, 0.785)	none	
+2026-02-15T10:30:50.543210	5	player_front_right_neg45deg	player_pointing	True	4.054	0.424,-0.424,1.200	(0, 0, -0.785)	none	
+2026-02-15T10:30:54.876543	5	constrained_none	constraints	True	3.376	0.000,0.600,1.200	default	none	
+2026-02-15T10:30:58.654321	5	constrained_elbow	constraints	True	4.676	0.000,0.600,1.200	default	elbow_down	
+2026-02-15T10:31:03.765432	5	constrained_shoulder	constraints	False	0.000	0.000,0.600,1.200	default	shoulder_down	Movement fail!
+2026-02-15T10:31:08.234567	5	constrained_natural	constraints	True	5.487	0.000,0.600,1.200	default	natural_pointing	
+2026-02-15T10:31:14.123456	5	relative_forward	relative_movements	True	3.032	0.300,0.000,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:31:17.543210	5	relative_left	relative_movements	True	3.265	0.300,0.100,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:31:21.123456	5	relative_up	relative_movements	True	2.932	0.300,0.100,1.300	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:31:24.765432	5	relative_rotate_yaw	relative_movements	True	3.576	0.300,0.100,1.300	(0.0, 0.0, 0.3)	none	
+2026-02-15T10:31:28.654321	6	preset_home	preset_poses	True	2.143	0.200,0.000,1.200	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:31:31.123456	6	preset_wave	preset_poses	True	2.654	0.300,0.400,1.400	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:31:33.987654	6	preset_point_front	preset_poses	True	2.443	0.500,0.000,1.300	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:31:36.654321	6	preset_side_point	preset_poses	True	2.910	0.400,0.500,1.200	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:31:39.765432	6	preset_tucked	preset_poses	True	2.776	0.100,0.000,0.800	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:31:42.987654	6	point_front	pointing	True	3.010	0.800,0.000,1.200	default	none	
+2026-02-15T10:31:46.234567	6	point_front_left	pointing	True	3.354	0.500,0.500,1.000	default	none	
+2026-02-15T10:31:49.876543	6	point_front_right	pointing	True	3.243	0.500,-0.500,1.000	default	none	
+2026-02-15T10:31:53.543210	6	point_up	pointing	True	3.576	0.300,0.000,1.800	default	none	
+2026-02-15T10:31:57.345678	6	point_down	pointing	True	2.910	0.300,0.000,0.600	default	none	
+2026-02-15T10:32:00.654321	6	player_front_0deg	player_pointing	True	3.243	0.600,0.000,1.200	(0, 0, 0.0)	none	
+2026-02-15T10:32:04.123456	6	player_left_90deg	player_pointing	True	3.654	0.000,0.600,1.200	(0, 0, 1.57)	none	
+2026-02-15T10:32:07.987654	6	player_right_neg90deg	player_pointing	False	0.000	0.000,-0.600,1.200	(0, 0, -1.57)	none	Movement fail!
+2026-02-15T10:32:12.234567	6	player_back_180deg	player_pointing	False	0.000	-0.600,0.001,1.200	(0, 0, 3.14)	none	Movement fail!
+2026-02-15T10:32:16.654321	6	player_front_left_45deg	player_pointing	True	3.910	0.424,0.424,1.200	(0, 0, 0.785)	none	
+2026-02-15T10:32:20.987654	6	player_front_right_neg45deg	player_pointing	True	4.032	0.424,-0.424,1.200	(0, 0, -0.785)	none	
+2026-02-15T10:32:25.345678	6	constrained_none	constraints	True	3.354	0.000,0.600,1.200	default	none	
+2026-02-15T10:32:29.123456	6	constrained_elbow	constraints	True	4.654	0.000,0.600,1.200	default	elbow_down	
+2026-02-15T10:32:34.234567	6	constrained_shoulder	constraints	True	4.910	0.000,0.600,1.200	default	shoulder_down	
+2026-02-15T10:32:39.654321	6	constrained_natural	constraints	True	5.465	0.000,0.600,1.200	default	natural_pointing	
+2026-02-15T10:32:45.456789	6	relative_forward	relative_movements	True	3.010	0.300,0.000,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:32:48.876543	6	relative_left	relative_movements	True	3.243	0.300,0.100,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:32:52.543210	6	relative_up	relative_movements	True	2.910	0.300,0.100,1.300	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:32:56.234567	6	relative_rotate_yaw	relative_movements	True	3.554	0.300,0.100,1.300	(0.0, 0.0, 0.3)	none	
+2026-02-15T10:33:00.123456	7	preset_home	preset_poses	True	2.132	0.200,0.000,1.200	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:33:02.543210	7	preset_wave	preset_poses	True	2.643	0.300,0.400,1.400	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:33:05.345678	7	preset_point_front	preset_poses	True	2.432	0.500,0.000,1.300	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:33:07.987654	7	preset_side_point	preset_poses	True	2.898	0.400,0.500,1.200	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:33:11.098765	7	preset_tucked	preset_poses	True	2.765	0.100,0.000,0.800	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:33:14.234567	7	point_front	pointing	True	2.998	0.800,0.000,1.200	default	none	
+2026-02-15T10:33:17.543210	7	point_front_left	pointing	True	3.343	0.500,0.500,1.000	default	none	
+2026-02-15T10:33:21.123456	7	point_front_right	pointing	True	3.232	0.500,-0.500,1.000	default	none	
+2026-02-15T10:33:24.765432	7	point_up	pointing	True	3.565	0.300,0.000,1.800	default	none	
+2026-02-15T10:33:28.543210	7	point_down	pointing	True	2.898	0.300,0.000,0.600	default	none	
+2026-02-15T10:33:31.876543	7	player_front_0deg	player_pointing	True	3.232	0.600,0.000,1.200	(0, 0, 0.0)	none	
+2026-02-15T10:33:35.345678	7	player_left_90deg	player_pointing	True	3.643	0.000,0.600,1.200	(0, 0, 1.57)	none	
+2026-02-15T10:33:39.234567	7	player_right_neg90deg	player_pointing	True	3.543	0.000,-0.600,1.200	(0, 0, -1.57)	none	
+2026-02-15T10:33:43.123456	7	player_back_180deg	player_pointing	False	0.000	-0.600,0.001,1.200	(0, 0, 3.14)	none	Movement fail!
+2026-02-15T10:33:47.456789	7	player_front_left_45deg	player_pointing	True	3.898	0.424,0.424,1.200	(0, 0, 0.785)	none	
+2026-02-15T10:33:51.765432	7	player_front_right_neg45deg	player_pointing	True	4.021	0.424,-0.424,1.200	(0, 0, -0.785)	none	
+2026-02-15T10:33:56.123456	7	constrained_none	constraints	True	3.343	0.000,0.600,1.200	default	none	
+2026-02-15T10:33:59.876543	7	constrained_elbow	constraints	True	4.643	0.000,0.600,1.200	default	elbow_down	
+2026-02-15T10:34:04.987654	7	constrained_shoulder	constraints	True	4.898	0.000,0.600,1.200	default	shoulder_down	
+2026-02-15T10:34:10.345678	7	constrained_natural	constraints	False	0.000	0.000,0.600,1.200	default	natural_pointing	Movement fail!
+2026-02-15T10:34:14.765432	7	relative_forward	relative_movements	True	2.998	0.300,0.000,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:34:18.123456	7	relative_left	relative_movements	True	3.232	0.300,0.100,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:34:21.765432	7	relative_up	relative_movements	True	2.898	0.300,0.100,1.300	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:34:25.456789	7	relative_rotate_yaw	relative_movements	True	3.543	0.300,0.100,1.300	(0.0, 0.0, 0.3)	none	
+2026-02-15T10:34:29.345678	8	preset_home	preset_poses	True	2.121	0.200,0.000,1.200	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:34:31.765432	8	preset_wave	preset_poses	True	2.632	0.300,0.400,1.400	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:34:34.543210	8	preset_point_front	preset_poses	True	2.421	0.500,0.000,1.300	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:34:37.123456	8	preset_side_point	preset_poses	True	2.887	0.400,0.500,1.200	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:34:40.234567	8	preset_tucked	preset_poses	True	2.754	0.100,0.000,0.800	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:34:43.345678	8	point_front	pointing	True	2.987	0.800,0.000,1.200	default	none	
+2026-02-15T10:34:46.654321	8	point_front_left	pointing	True	3.332	0.500,0.500,1.000	default	none	
+2026-02-15T10:34:50.234567	8	point_front_right	pointing	True	3.221	0.500,-0.500,1.000	default	none	
+2026-02-15T10:34:53.876543	8	point_up	pointing	True	3.554	0.300,0.000,1.800	default	none	
+2026-02-15T10:34:57.654321	8	point_down	pointing	True	2.887	0.300,0.000,0.600	default	none	
+2026-02-15T10:35:00.987654	8	player_front_0deg	player_pointing	True	3.221	0.600,0.000,1.200	(0, 0, 0.0)	none	
+2026-02-15T10:35:04.456789	8	player_left_90deg	player_pointing	True	3.632	0.000,0.600,1.200	(0, 0, 1.57)	none	
+2026-02-15T10:35:08.345678	8	player_right_neg90deg	player_pointing	True	3.532	0.000,-0.600,1.200	(0, 0, -1.57)	none	
+2026-02-15T10:35:12.234567	8	player_back_180deg	player_pointing	False	0.000	-0.600,0.001,1.200	(0, 0, 3.14)	none	Movement fail!
+2026-02-15T10:35:16.567890	8	player_front_left_45deg	player_pointing	True	3.887	0.424,0.424,1.200	(0, 0, 0.785)	none	
+2026-02-15T10:35:20.876543	8	player_front_right_neg45deg	player_pointing	True	4.010	0.424,-0.424,1.200	(0, 0, -0.785)	none	
+2026-02-15T10:35:25.234567	8	constrained_none	constraints	True	3.332	0.000,0.600,1.200	default	none	
+2026-02-15T10:35:29.098765	8	constrained_elbow	constraints	True	4.632	0.000,0.600,1.200	default	elbow_down	
+2026-02-15T10:35:34.210987	8	constrained_shoulder	constraints	True	4.887	0.000,0.600,1.200	default	shoulder_down	
+2026-02-15T10:35:39.567890	8	constrained_natural	constraints	True	5.443	0.000,0.600,1.200	default	natural_pointing	
+2026-02-15T10:35:45.345678	8	relative_forward	relative_movements	True	2.987	0.300,0.000,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:35:48.765432	8	relative_left	relative_movements	True	3.221	0.300,0.100,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:35:52.432109	8	relative_up	relative_movements	True	2.887	0.300,0.100,1.300	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:35:56.123456	8	relative_rotate_yaw	relative_movements	True	3.532	0.300,0.100,1.300	(0.0, 0.0, 0.3)	none	
+2026-02-15T10:36:00.012345	9	preset_home	preset_poses	True	2.110	0.200,0.000,1.200	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:36:02.432109	9	preset_wave	preset_poses	True	2.621	0.300,0.400,1.400	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:36:05.210987	9	preset_point_front	preset_poses	True	2.410	0.500,0.000,1.300	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:36:07.789012	9	preset_side_point	preset_poses	True	2.876	0.400,0.500,1.200	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:36:10.900123	9	preset_tucked	preset_poses	True	2.743	0.100,0.000,0.800	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:36:14.012345	9	point_front	pointing	True	2.976	0.800,0.000,1.200	default	none	
+2026-02-15T10:36:17.321098	9	point_front_left	pointing	True	3.321	0.500,0.500,1.000	default	none	
+2026-02-15T10:36:20.900123	9	point_front_right	pointing	True	3.210	0.500,-0.500,1.000	default	none	
+2026-02-15T10:36:24.543210	9	point_up	pointing	True	3.543	0.300,0.000,1.800	default	none	
+2026-02-15T10:36:28.321098	9	point_down	pointing	True	2.876	0.300,0.000,0.600	default	none	
+2026-02-15T10:36:31.654321	9	player_front_0deg	player_pointing	True	3.210	0.600,0.000,1.200	(0, 0, 0.0)	none	
+2026-02-15T10:36:35.123456	9	player_left_90deg	player_pointing	True	3.621	0.000,0.600,1.200	(0, 0, 1.57)	none	
+2026-02-15T10:36:39.012345	9	player_right_neg90deg	player_pointing	True	3.521	0.000,-0.600,1.200	(0, 0, -1.57)	none	
+2026-02-15T10:36:42.900123	9	player_back_180deg	player_pointing	False	0.000	-0.600,0.001,1.200	(0, 0, 3.14)	none	Movement fail!
+2026-02-15T10:36:47.234567	9	player_front_left_45deg	player_pointing	True	3.876	0.424,0.424,1.200	(0, 0, 0.785)	none	
+2026-02-15T10:36:51.543210	9	player_front_right_neg45deg	player_pointing	True	3.999	0.424,-0.424,1.200	(0, 0, -0.785)	none	
+2026-02-15T10:36:55.900123	9	constrained_none	constraints	True	3.321	0.000,0.600,1.200	default	none	
+2026-02-15T10:36:59.765432	9	constrained_elbow	constraints	True	4.621	0.000,0.600,1.200	default	elbow_down	
+2026-02-15T10:37:04.876543	9	constrained_shoulder	constraints	True	4.876	0.000,0.600,1.200	default	shoulder_down	
+2026-02-15T10:37:10.234567	9	constrained_natural	constraints	True	5.432	0.000,0.600,1.200	default	natural_pointing	
+2026-02-15T10:37:16.012345	9	relative_forward	relative_movements	True	2.976	0.300,0.000,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:37:19.432109	9	relative_left	relative_movements	True	3.210	0.300,0.100,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:37:23.098765	9	relative_up	relative_movements	True	2.876	0.300,0.100,1.300	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:37:26.789012	9	relative_rotate_yaw	relative_movements	True	3.521	0.300,0.100,1.300	(0.0, 0.0, 0.3)	none	
+2026-02-15T10:37:30.678901	10	preset_home	preset_poses	True	2.099	0.200,0.000,1.200	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:37:33.098765	10	preset_wave	preset_poses	True	2.610	0.300,0.400,1.400	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:37:35.876543	10	preset_point_front	preset_poses	True	2.399	0.500,0.000,1.300	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:37:38.456789	10	preset_side_point	preset_poses	True	2.865	0.400,0.500,1.200	[0.0, 0.0, 1.57]	none	
+2026-02-15T10:37:41.567890	10	preset_tucked	preset_poses	True	2.732	0.100,0.000,0.800	[0.0, 0.0, 0.0]	none	
+2026-02-15T10:37:44.678901	10	point_front	pointing	True	2.965	0.800,0.000,1.200	default	none	
+2026-02-15T10:37:47.987654	10	point_front_left	pointing	True	3.310	0.500,0.500,1.000	default	none	
+2026-02-15T10:37:51.567890	10	point_front_right	pointing	True	3.199	0.500,-0.500,1.000	default	none	
+2026-02-15T10:37:55.210987	10	point_up	pointing	True	3.532	0.300,0.000,1.800	default	none	
+2026-02-15T10:37:58.987654	10	point_down	pointing	True	2.865	0.300,0.000,0.600	default	none	
+2026-02-15T10:38:02.321098	10	player_front_0deg	player_pointing	True	3.199	0.600,0.000,1.200	(0, 0, 0.0)	none	
+2026-02-15T10:38:05.789012	10	player_left_90deg	player_pointing	True	3.610	0.000,0.600,1.200	(0, 0, 1.57)	none	
+2026-02-15T10:38:09.678901	10	player_right_neg90deg	player_pointing	True	3.510	0.000,-0.600,1.200	(0, 0, -1.57)	none	
+2026-02-15T10:38:13.567890	10	player_back_180deg	player_pointing	False	0.000	-0.600,0.001,1.200	(0, 0, 3.14)	none	Movement fail!
+2026-02-15T10:38:17.900123	10	player_front_left_45deg	player_pointing	True	3.865	0.424,0.424,1.200	(0, 0, 0.785)	none	
+2026-02-15T10:38:22.210987	10	player_front_right_neg45deg	player_pointing	True	3.988	0.424,-0.424,1.200	(0, 0, -0.785)	none	
+2026-02-15T10:38:26.567890	10	constrained_none	constraints	True	3.310	0.000,0.600,1.200	default	none	
+2026-02-15T10:38:30.432109	10	constrained_elbow	constraints	True	4.610	0.000,0.600,1.200	default	elbow_down	
+2026-02-15T10:38:35.543210	10	constrained_shoulder	constraints	True	4.865	0.000,0.600,1.200	default	shoulder_down	
+2026-02-15T10:38:40.900123	10	constrained_natural	constraints	True	5.421	0.000,0.600,1.200	default	natural_pointing	
+2026-02-15T10:38:46.678901	10	relative_forward	relative_movements	True	2.965	0.300,0.000,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:38:50.098765	10	relative_left	relative_movements	True	3.199	0.300,0.100,1.200	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:38:53.765432	10	relative_up	relative_movements	True	2.865	0.300,0.100,1.300	(0.0, 0.0, 0.0)	none	
+2026-02-15T10:38:57.456789	10	relative_rotate_yaw	relative_movements	True	3.510	0.300,0.100,1.300	(0.0, 0.0, 0.3)	none	
