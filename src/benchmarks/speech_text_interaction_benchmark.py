@@ -1,5 +1,5 @@
 """
-TEST: READ FROM FILE -> TTS -> LISTEN -> TRASCRIBE
+TEST: TTS, LISTEN, TRASCRIBE, ASK LLM
 """
 
 from typing import Optional
@@ -124,7 +124,6 @@ def hear(duration:int = 5, device_index: Optional[int] = None):
 
 
 def transcribe(audio_data, language=None):
-    # Send directly to the STT endpoint
     url = "http://localhost:5001/stt"
     files = {"file": ("audio.wav", audio_data, "audio/wav")}
     data = {"language": language} if language else {}
