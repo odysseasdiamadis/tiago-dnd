@@ -20,3 +20,32 @@ roslaunch tiago_gazebo tiago_gazebo.launch public_sim:=true end_effector:=pal-he
 python3 src/tiago_ws/src/tiago_actions/src/scripts/search_players.py    # start simulation test script
 
 To work or send ros commands on Tiago, run ./join.sh in another terminal window. 
+
+## How to run all benchmarks
+For each onw, you should activate the conda env first
+'''
+conda activate tiago_env
+'''
+
+### Face embedder benchmark:
+run the script:
+'''
+PYTHONPATH=src python src/benchmarks/face_processing_benchmark.py
+'''
+
+### Robot benchmark:
+Boot up tiago docker and gazebo, then start the script:
+'''
+PYTHONATH=src python src/benchmarks/robot_benchmark.py
+'''
+
+### Conversation benchmark:
+Start the brain server:
+'''
+PYTHONPATH=src python src/brain_server.py
+'''
+
+Then, in another shell start the benchmark (you can also put the server and the benchmark on different systems ):
+'''
+PYTHONATH=src python src/benchmarks/speech_text_interaction_benchmark.py
+'''
