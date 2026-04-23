@@ -1,3 +1,4 @@
+import os
 import rospy
 import numpy as np
 from geometry_msgs.msg import Pose, Point, Quaternion, PoseStamped
@@ -7,6 +8,7 @@ from tf.transformations import quaternion_from_euler, euler_from_quaternion
 from typing import Optional, Dict, Tuple
 import moveit_commander
 
+from player_model import Player
 
 class ArmController:
     """Controls TIAGo's arm using MoveIt for pose-based control."""
@@ -37,7 +39,6 @@ class ArmController:
         # Elbow constraint settings
         self.use_elbow_constraint = False
         self.elbow_down_constraint = None
-        
         # Shoulder constraint settings (for natural pointing)
         self.use_shoulder_constraint = False
         self.shoulder_down_constraint = None
@@ -53,12 +54,12 @@ class ArmController:
         self.use_elbow_constraint = enable
         
         if enable:
-            # Create joint constraint for elbow (typically arm_2_joint for TIAGo)
+            # Create joint constraint for elbow (shouldbe arm_2_joint for TIAGo)
             elbow_constraint = JointConstraint()
-            elbow_constraint.joint_name = "arm_2_joint"  # TIAGo's elbow joint
+            elbow_constraint.joint_name = "arm_2_joint"  # elbow joint
             elbow_constraint.position = max_elbow_angle
-            elbow_constraint.tolerance_above = 0.5  # Allow some flexibility above
-            elbow_constraint.tolerance_below = 3.14  # Allow full range below
+            elbow_constraint.tolerance_above = 0.5  # Allows flexibility for above
+            elbow_constraint.tolerance_below = 3.14  # Allows full range below
             elbow_constraint.weight = 1.0
             
             # Create constraints message
@@ -66,7 +67,7 @@ class ArmController:
             self.elbow_down_constraint.name = "elbow_down"
             self.elbow_down_constraint.joint_constraints = [elbow_constraint]
             
-            rospy.loginfo(f"Elbow down constraint enabled (max angle: {max_elbow_angle:.3f} rad)")
+            rospy.loginfo(f"Elbow down constraint enabled, max angle: {max_elbow_angle:.3f} rads")
         else:
             self.elbow_down_constraint = None
             rospy.loginfo("Elbow constraint disabled")
@@ -74,20 +75,19 @@ class ArmController:
     def set_shoulder_down_constraint(self, enable: bool = True, max_shoulder_angle: float = 0.5):
         """
         Enable/disable constraint to keep shoulder pointing downward for natural pointing.
-        
         enable: Whether to enable the shoulder constraint
         max_shoulder_angle: Maximum angle for shoulder joint (radians).
-                        Positive values allow shoulder to go up, 0.0 = level, negative = down
+        Positive values allow shoulder to go up, 0.0 = level, negative = down
         """
         self.use_shoulder_constraint = enable
         
         if enable:
-            # Create joint constraint for shoulder (arm_1_joint for TIAGo)
+            # Create joint constraint for shoulder (should be arm_1_joint for TIAGo)
             shoulder_constraint = JointConstraint()
-            shoulder_constraint.joint_name = "arm_1_joint"  # TIAGo's shoulder joint
+            shoulder_constraint.joint_name = "arm_1_joint"  # shoulder joint
             shoulder_constraint.position = max_shoulder_angle
-            shoulder_constraint.tolerance_above = 0.3  # Allow some flexibility above
-            shoulder_constraint.tolerance_below = 1.57  # Allow full range below (down)
+            shoulder_constraint.tolerance_above = 0.3  # allowa flexibility above
+            shoulder_constraint.tolerance_below = 1.57  # allows full range below/down
             shoulder_constraint.weight = 0.8  # slightly lower weight than elbow
             
             # Create constraints message
@@ -125,13 +125,12 @@ class ArmController:
                      keep_elbow_down: bool = None) -> bool:
         """
         Move wrist to specified pose (position + orientation).
-        
         position: (x, y, z) position in meters relative to base_footprint
         orientation: (x, y, z, w) quaternion OR None if using rpy
         rpy: (roll, pitch, yaw) in radians OR None if using quaternion
         keep_elbow_down: Force elbow down for this movement (overrides global setting)
             
-        Returns True if successful, False otherwise
+        Returns True if successful, False if crashed/otherwise
         """
         # Create target pose
         target_pose = PoseStamped()
@@ -206,11 +205,10 @@ class ArmController:
                  wrist_distance: float = 0.3) -> bool:
         """
         Point the arm toward a target position.
-        
         target_position: (x, y, z) position to point at
-        wrist_distance: Distance from target to place wrist (meters)
+        wrist_distance: dist from target to place wrist
             
-        Returns True if successful, False otherwise
+        Returns True if successful, False if not
         """
         x_target, y_target, z_target = target_position
         
@@ -351,7 +349,7 @@ class ArmController:
                 'rpy': (0.0, 1.0, -1.0),
                 'description': 'Resting position by the side'
             }
-        }
+        } # TODO: this is a preset
     
     def move_to_preset(self, preset_name: str) -> bool:
         """
@@ -372,7 +370,7 @@ class ArmController:
         return self.move_to_pose(preset['position'], rpy=preset['rpy'])
     
     def stop(self):
-        """Stop current movement."""
+        """Stop current movement"""
         self.arm_group.stop()
         self.arm_group.clear_pose_targets()
         rospy.loginfo("Arm movement stopped")
@@ -380,7 +378,7 @@ class ArmController:
 
 # Example usage and test functions
 def test_basic_movements():
-    """Test basic arm movements."""
+    """Test basic arm movements"""
     rospy.init_node('arm_controller_test', anonymous=True)
     controller = ArmController()
     
@@ -410,7 +408,7 @@ def test_pointing():
     targets = [
         (0.8, 0.0, 1.2),   # Front
         (0.5, 0.5, 1.0),   # Front-left
-        (0.5, -0.5, 1.0),  # Front-right  
+        (0.5, -0.5, 1.0),  #Front-right  
         (0.3, 0.0, 1.8),   # Up
         (0.3, 0.0, 0.6)    # Down
     ]
@@ -445,7 +443,7 @@ def test_player_pointing():
         Player([], 0.0, (0, 0, 0, 0), 0),        # Front (0 degrees)
         Player([], 1.57, (0, 0, 0, 0), 1),       # Left (90 degrees)
         Player([], -1.57, (0, 0, 0, 0), 2),      # Right (-90 degrees)
-        Player([], 3.14, (0, 0, 0, 0), 3),       # Back (180 degrees)
+        Player([], 3.14, (0, 0, 0, 0), 3),       # Back (180 degrees
         Player([], 0.785, (0, 0, 0, 0), 4),      # Front-left (45 degrees)
     ]
     
@@ -475,20 +473,20 @@ def test_elbow_constraint():
     rospy.loginfo("Testing elbow constraint...")
     
     # Test without elbow constraint
-    rospy.loginfo("=== Testing WITHOUT elbow constraint ===")
+    rospy.loginfo("Start testing WITHOUT elbow constraint:")
     controller.set_elbow_down_constraint(False)
-    test_player = Player([], 1.57, (0, 0, 0, 0), 1)  # Left (90 degrees)
+    test_player = Player([], 1.57, (0, 0, 0, 0), 1)  # Left at90 deg
     controller.point_at_player(test_player)
     rospy.sleep(3)
     
     # test with elbow constraint
-    rospy.loginfo("=== Testing WITH elbow constraint ===")
+    rospy.loginfo("Start testing WITH elbow constraint:")
     controller.set_elbow_down_constraint(True, max_elbow_angle=-0.2)  # Slight bend downward
     controller.point_at_player(test_player)
     rospy.sleep(3)
     
     # Test different positions with constraint
-    rospy.loginfo("=== Testing different positions with elbow down ===")
+    rospy.loginfo("Start Testing different positions with elbow down:")
     test_positions = [
         (0.5, 0.3, 1.1, "front-left low"),
         (0.4, -0.4, 1.4, "front-right high"),
@@ -500,7 +498,7 @@ def test_elbow_constraint():
         controller.move_to_pose((x, y, z), rpy=(0, 0, 0), keep_elbow_down=True)
         rospy.sleep(2)
     
-    # Clean up
+    # Cleanup
     controller.clear_constraints()
     controller.move_to_preset('home')
     rospy.loginfo("Elbow constraint test completed")
@@ -511,38 +509,33 @@ def test_natural_pointing():
     rospy.init_node('arm_natural_pointing_test', anonymous=True)
     controller = ArmController()
     
-    # Import Player class for testing
-    import sys
-    import os
-    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-    from player_model import Player
     
-    rospy.loginfo("Testing natural pointing constraints...")
+    rospy.loginfo("start testing natural pointing constraints...")
     
     # Test regular pointing (no constraints)
-    rospy.loginfo("=== Testing REGULAR pointing (no constraints) ===")
+    rospy.loginfo("start testing REGULAR pointing, no constraints..")
     controller.clear_constraints()
-    test_player = Player([], 1.57, (0, 0, 0, 0), 1)  # Left (90 degrees)
+    test_player = Player([], 1.57, (0, 0, 0, 0), 1)  # Left at 90 deg
     controller.point_at_player(test_player)
     rospy.sleep(4)
     
     # Test natural pointing constraints
-    rospy.loginfo("=== Testing NATURAL pointing constraints ===")
+    rospy.loginfo("start testing NATURAL pointing constraints:")
     controller.set_natural_pointing_constraints(True)
     controller.point_at_player(test_player)
     rospy.sleep(4)
     
     # Test different positions with natural constraints
-    rospy.loginfo("=== Testing different players with natural pointing ===")
+    rospy.loginfo("start testing different players with natural pointing:")
     test_players = [
         Player([], 0.0, (0, 0, 0, 0), 0),        # Front (0 degrees)
         Player([], -1.57, (0, 0, 0, 0), 2),      # Right (-90 degrees)
-        Player([], 0.785, (0, 0, 0, 0), 4),      # Front-left (45 degrees)
+        Player([], 0.785, (0, 0, 0, 0), 4),      # Front-left (45 degrees
         Player([], -0.785, (0, 0, 0, 0), 5),     # Front-right (-45 degrees)
     ]
     
     for player in test_players:
-        rospy.loginfo(f"Natural pointing at player {player.player_id} (yaw: {player.yaw:.3f} rad, {np.degrees(player.yaw):.1f} deg)")
+        rospy.loginfo(f"Natural pointing at player {player.player_id} / yaw: {player.yaw:.3f} rad, {np.degrees(player.yaw):.1f} deg")
         controller.point_at_player(player)
         rospy.sleep(3)
     
@@ -586,4 +579,4 @@ if __name__ == '__main__':
     try:
         test_natural_pointing()
     except rospy.ROSInterruptException:
-        rospy.loginfo("Test interrupted")
+        rospy.loginfo("Test interrupted dureing exec")

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import rospy
 from std_msgs.msg import UInt8MultiArray
 import tkinter as tk
@@ -45,7 +43,7 @@ class AudioRecorder:
         self.recording = True
         print("Recording was started!")
 
-        # Start reading chunks via Tkinter .after()
+        # Start reading chunks using Tkinter .after()
         self._record_step()
 
     def stop_recording(self) -> bytes:

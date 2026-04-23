@@ -3,11 +3,11 @@ import numpy as np
 import tempfile
 import os
 from typing import Optional, Tuple, List
+import torch
 from PIL import Image as PILImage
 from deepface import DeepFace
 from detection import compare_embeddings, scale_bbox
 from player_model import Player
-import torch
 
 class FaceProcessor:
     def __init__(self, similarity_threshold: float = 0.85, border_margin: int = 50, scale_factor: float = 1):

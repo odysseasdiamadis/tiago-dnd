@@ -15,7 +15,7 @@ from face_processor import FaceProcessor
 from sensor_msgs.msg import JointState
 
 class HeadController:
-    """Controls TIAGo head movement for player detection and tracking."""
+    """Controls TIAGo head movement for player detection and tracking"""
     
     def __init__(self, image_topic: str = '/xtion/rgb/image_color'):
         self.head_pub = rospy.Publisher('/head_controller/command', JointTrajectory, queue_size=1)
@@ -46,7 +46,7 @@ class HeadController:
 
 
     def move_head(self, yaw: float, pitch: float = 0.0, duration: float = None) -> None:
-        """Move TIAGo head to specified yaw and pitch angles."""
+        """Move TIAGo head to specified yaw and pitch angles"""
         if duration is None:
             duration = self.movement_duration
             
@@ -60,7 +60,7 @@ class HeadController:
         rospy.sleep(duration + 0.1)  # Wait for movement to complete
     
     def capture_image(self, timeout: float = 3.0) -> Optional[np.ndarray]:
-        """Captures image from the camera."""
+        """Captures image from the camera"""
         try:
             ros_img = rospy.wait_for_message(self.image_topic, Image, timeout=timeout)
             cv_img = self.bridge.imgmsg_to_cv2(ros_img, desired_encoding='bgr8')
@@ -70,7 +70,7 @@ class HeadController:
             return None
     
     def detect_faces_in_current_view(self, model) -> Tuple[Optional[np.ndarray], Detections]:
-        """Detect faces in the current camera view."""
+        """Detect faces in the current camera view"""
         image = self.capture_image()
         if image is None:
             return None, Detections.empty()
@@ -83,13 +83,13 @@ class HeadController:
         return image, detections
     
     def get_face_center_error(self, bbox: Tuple[float, float, float, float]) -> float:
-        """calculate horizontal distance from face center to image center."""
+        """calculate horizontal distance from face center to image center"""
         x1, y1, x2, y2 = bbox
         face_center_x = (x1 + x2) / 2
         return face_center_x - self.image_center_x
     
     def is_face_centered(self, bbox: Tuple[float, float, float, float]) -> bool:
-        """Check if face is centered within tolerance."""
+        """Check if face is centered within tolerance"""
         error = abs(self.get_face_center_error(bbox))
         return error <= self.center_tolerance
     
@@ -103,7 +103,7 @@ class HeadController:
                 rospy.loginfo(f"No faces detected in attempt {attempt + 1}")
                 return None, None
             
-            # Take the largest face (most prominent)
+            # Take the largest face in image
             largest_face_idx = 0
             if len(detections.xyxy) > 1:
                 areas = [(x2-x1)*(y2-y1) for x1, y1, x2, y2 in detections.xyxy]
@@ -143,7 +143,7 @@ class HeadController:
         error_pixels = self.get_face_center_error(bbox)
         
         # Convert pixel error to angular error
-        # NOTE: Assuming camera field of view is approximately 60 degrees (1.047 radians)
+        # NOTE: Assuming camera field of view is approximately 60 degrees (or~1.047 rad)
         camera_fov_radians = 1.047
         angular_error = (error_pixels / self.image_width) * camera_fov_radians
         
@@ -183,29 +183,29 @@ class HeadController:
 
     def get_head_joints(self, timeout=1.0):
         try:
-            # Questa funzione BLOCCA l'esecuzione finché non arriva un messaggio
+            # NOTE: This func LOCKS execution until a mesasge is detected
             msg = rospy.wait_for_message('/joint_states', JointState, timeout=timeout)
             if not msg:
                 raise ValueError("Could not find joint states")
-            # I joint in 'msg.name' non hanno sempre lo stesso ordine, 
-            # quindi dobbiamo cercare l'indice corretto ogni volta.
+            
+            # joint in msg.name have different order each time, so we must search for themn each time
             if "head_1_joint" in msg.name and "head_2_joint" in msg.name:
-                idx_1 = msg.name.index("head_1_joint") # Yaw (Pan)
-                idx_2 = msg.name.index("head_2_joint") # Pitch (Tilt)
+                idx_1 = msg.name.index("head_1_joint") # Yaw 
+                idx_2 = msg.name.index("head_2_joint") # Pitch
                 
                 current_yaw = msg.position[idx_1]
                 current_pitch = msg.position[idx_2]
                 
                 return current_yaw, current_pitch
             else:
-                rospy.logwarn("I joint della testa non sono presenti nel messaggio /joint_states")
+                rospy.logwarn("head joint are not in message: /joint_states")
                 return None, None
 
         except rospy.ROSException:
-            rospy.logerr("Timeout: Nessun messaggio ricevuto da /joint_states entro {:.1f}s".format(timeout))
+            rospy.logerr("Timeout: No message gotten by /joint_states in {:.1f}s".format(timeout))
             return None, None
         except ValueError:
-            rospy.logerr("Errore nel parsing dei joint.")
+            rospy.logerr("ERROR: joint parsing")
             return None, None
 
     def look_at_player(self, player: Player, assert_player_is_here=False) -> bool:

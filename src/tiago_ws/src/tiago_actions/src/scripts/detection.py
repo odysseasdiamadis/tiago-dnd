@@ -108,17 +108,16 @@ def process_all_images(input_folder: str, output_folder: str, model, database: l
             process_image(image_path, model, output_folder, database)
 
 
-def main():
-    input_folder = "src/img_input_example"
-    output_folder = "src/out_folder"
-    model_path = download_model("arnabdhar/YOLOv8-Face-Detection", "model.pt")
-
-    model = YOLO(model_path)
-
-    face_database = []
-
-    process_all_images(input_folder, output_folder, model, face_database)
 
 
 if __name__ == "__main__":
-    main()
+    input_folder = "src/img_input_example"
+    output_folder = "src/out_folder"
+
+    # define model
+    model_path = download_model("arnabdhar/YOLOv8-Face-Detection", "model.pt")
+    model = YOLO(model_path)
+
+    # start!
+    face_database = []
+    process_all_images(input_folder, output_folder, model, face_database)
